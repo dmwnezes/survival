@@ -2079,7 +2079,12 @@ $('#abil').onclick = useAbility;
 $('#pausebtn').onclick = () => { pauseGame(); saveRun(); };
 $('#btn-nm').onclick = () => { const m = ['normal', 'pesadelo', 'infinito']; save.gmode = m[(m.indexOf(save.gmode) + 1) % 3]; persist(); sfx('ui'); renderChars(); };
 $('#btn-chest').onclick = () => { if (mode !== 'chest') return; sfx('ui'); hideScreens(); mode = 'play'; last = performance.now(); };
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
+  // quando uma versão nova do jogo assume, recarrega uma vez (fora de partida)
+  let swReloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!swReloaded && (mode === 'menu' || mode === 'chars')) { swReloaded = true; location.reload(); } });
+}
 let installEvt = null;
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('#btn-install').classList.remove('hidden'); });
 $('#btn-install').onclick = async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; $('#btn-install').classList.add('hidden'); };
