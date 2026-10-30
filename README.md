@@ -11,6 +11,10 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 - Arma no nível 8 + o item certo = evolução.
 
 ## Conteúdo
+- Mapa grande (4800 x 3200) com vilarejo assombrado, potes, cercas e carroças quebráveis, espinhos, areia movediça, altares e redemoinhos
+- Habilidade ativa por personagem (Laço, Pulo e Forró), no botão ou na barra de espaço
+- Evolução com dois caminhos: Área ou Força
+- Cenas de abertura e de amanhecer
 - 3 personagens: Vaqueiro, Pescador e Forrozeira (liberados por conquista ou rapadura)
 - 11 armas com evolução: Chapéu de Couro, Peixeira, Baladeira, Sanfona, Fogueira de São João, Rojão, Tarrafa, Berimbau, Cordel Mágico, Aboio e Galo de Briga
 - 11 itens passivos, incluindo Cachaça de Alambique, Ferradura, Lampião a Gás e Fitinha do Bonfim (salva da morte uma vez)
