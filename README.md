@@ -15,6 +15,10 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 - Habilidade ativa por personagem (Laço, Pulo e Forró), no botão ou na barra de espaço
 - Evolução com dois caminhos: Área ou Força
 - Cenas de abertura e de amanhecer
+- Cruzes que puxam todos os cajus do mapa, galinha de ouro, visagem trapalhona e Roleta do Coronel
+- Poderes no chão: chapéu de cangaceiro, sanfona dourada, rapadura gigante e garrafa de mel
+- Bichinhos na loja: Gato Preto, Preá e Carcará
+- Forma final ao evoluir as 6 armas
 - 3 personagens: Vaqueiro, Pescador e Forrozeira (liberados por conquista ou rapadura)
 - 11 armas com evolução: Chapéu de Couro, Peixeira, Baladeira, Sanfona, Fogueira de São João, Rojão, Tarrafa, Berimbau, Cordel Mágico, Aboio e Galo de Briga
 - 11 itens passivos, incluindo Cachaça de Alambique, Ferradura, Lampião a Gás e Fitinha do Bonfim (salva da morte uma vez)
