@@ -117,6 +117,10 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 .drow .db i{display:block;height:100%;background:var(--acc)}
 .drow .dv{width:4.6em;text-align:right;color:var(--moon)}
 #buffs{color:var(--acc);font-size:18px}
+.menu-grid{gap:12px;max-width:min(600px,92vw)}
+#statlist{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:66vh}
+#statlist .item{padding:6px 12px}
+.menu-grid .btn{min-width:170px;font-size:clamp(19px,4.6vh,26px)}
 .item .tx span{display:block}
 .char .skin{font-size:18px;margin-top:6px}
 </style>
@@ -143,11 +147,15 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
     <h1 id="title">VISAGEM</h1>
     <p class="sub">Sobreviva no sertão até o sol nascer</p>
     <div class="col">
+      <button class="btn hidden" id="btn-continue">Continuar a noite</button>
       <button class="btn" data-go="chars">Jogar</button>
-      <button class="btn ghost" data-go="shop">Loja</button>
-      <button class="btn ghost" data-go="ach">Conquistas</button>
-      <button class="btn ghost" id="btn-sound">Som ligado</button>
-      <button class="btn ghost hidden" id="btn-install">Instalar no celular</button>
+      <div class="row menu-grid">
+        <button class="btn ghost" data-go="shop">Loja</button>
+        <button class="btn ghost" data-go="ach">Conquistas</button>
+        <button class="btn ghost" data-go="stats">Estatísticas</button>
+        <button class="btn ghost" id="btn-sound">Som ligado</button>
+        <button class="btn ghost hidden" id="btn-install">Instalar no celular</button>
+      </div>
     </div>
     <div id="menu-foot"><span id="rec"></span><span class="rapbox"><img data-ico="rap" alt=""><span class="rapn">0</span></span></div>
   </section>
@@ -171,6 +179,12 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
   <section id="s-ach" class="screen">
     <h2>Conquistas</h2>
     <div id="achlist" class="list"></div>
+    <button class="btn ghost small" data-go="menu">Voltar</button>
+  </section>
+
+  <section id="s-stats" class="screen">
+    <h2>Estatísticas</h2>
+    <div id="statlist" class="list"></div>
     <button class="btn ghost small" data-go="menu">Voltar</button>
   </section>
 
@@ -229,11 +243,11 @@ const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in wind
 
 /* ---------------- save ---------------- */
 const SAVE_KEY = 'visagem-save-v1';
-const DEF_SAVE = { rap: 0, up: {}, chars: { vaqueiro: true }, ach: {}, best: { time: 0, kills: 0, level: 0 }, sound: true, skin: {} };
+const DEF_SAVE = { rap: 0, up: {}, chars: { vaqueiro: true }, ach: {}, best: { time: 0, kills: 0, level: 0 }, sound: true, skin: {}, stats: { runs: 0, wins: 0, time: 0, kills: 0, enemies: {}, weapons: {} } };
 let save = loadSave();
 function loadSave() {
   const base = JSON.parse(JSON.stringify(DEF_SAVE));
-  try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s) { Object.assign(base, s); base.up = s.up || {}; base.chars = Object.assign({ vaqueiro: true }, s.chars); base.ach = s.ach || {}; base.skin = s.skin || {}; base.best = Object.assign({ time: 0, kills: 0, level: 0 }, s.best); } } catch (e) {}
+  try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s) { Object.assign(base, s); base.up = s.up || {}; base.chars = Object.assign({ vaqueiro: true }, s.chars); base.ach = s.ach || {}; base.skin = s.skin || {}; base.stats = Object.assign({ runs: 0, wins: 0, time: 0, kills: 0, enemies: {}, weapons: {} }, s.stats); base.best = Object.assign({ time: 0, kills: 0, level: 0 }, s.best); } } catch (e) {}
   return base;
 }
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
@@ -373,6 +387,7 @@ const SFX = {
   ui: t => tone(t, 'square', 660, 0, 0.04, 0.05),
   zap: t => { tone(t, 'square', 1400, 500, 0.08, 0.05); tone(t + 0.02, 'triangle', 300, 900, 0.1, 0.05); },
   splash: t => noise(t, 0.2, 0.2, 700),
+  warn: t => { tone(t, 'sine', 110, 0, 0.6, 0.18); tone(t + 0.7, 'sine', 110, 0, 0.6, 0.18); },
   aboio: t => { tone(t, 'sawtooth', 196, 294, 0.35, 0.12); tone(t + 0.3, 'sawtooth', 294, 220, 0.4, 0.1); },
 };
 const SFX_GAP = { aboio: 0.3, zap: 0.06, splash: 0.1, hit: 0.045, pick: 0.035, boom: 0.08, swing: 0.06, shoot: 0.05, tp: 0.1 };
@@ -422,6 +437,13 @@ const SKINS = {
   forrozeira: { name: 'Vestido de Chita', ach: 'evolui', pal: { r: '#2f7fc8', w: '#f2c14e', d: '#3b2414' } },
 };
 for (const k in SKINS) S[k + '_skin'] = sprite(SD[k], SKINS[k].pal);
+const SYN = {
+  fogos:     { a: 'fogueira', b: 'rojao', name: 'Noite de Fogos', desc: 'Explosões do rojão deixam fogo no chão.' },
+  pescaria:  { a: 'tarrafa', b: 'peixeira', name: 'Pescaria', desc: 'Peixeira dá +50% de dano em inimigos presos.' },
+  forro:     { a: 'sanfona', b: 'berimbau', name: 'Roda de Forró', desc: 'Berimbau ricocheteia mais 2 vezes.' },
+  vaquejada: { a: 'chapeu', b: 'aboio', name: 'Vaquejada', desc: 'Chapéu de Couro ganha +1 chapéu.' },
+};
+const ENAMES = { morcego: 'Morcego', vagalume: 'Vagalume', saci: 'Saci', mula: 'Mula sem cabeça', curupira: 'Curupira', urubu: 'Urubu', lobisomem: 'Lobisomem', corposeco: 'Corpo-Seco', cuca: 'Cuca', boitata: 'Boitatá' };
 const ACH = {
   noite5:    { name: 'Primeira Noite', desc: 'Sobreviva 5 minutos.', reward: 'Libera o Pescador' },
   lobisomem: { name: 'Caçador de Lobisomem', desc: 'Derrote o Lobisomem.', reward: 'Libera a Forrozeira' },
@@ -483,6 +505,7 @@ function wstat(id, l, ev) {
   s.dmg *= P.dmg * (G && G.buff > 0 ? 1.3 : 1); if (s.cd) s.cd = Math.max(0.15, s.cd * P.cd);
   s.area *= P.area; if (s.rad) s.rad *= P.area;
   if (s.n && id !== 'sanfona') s.n += P.amount;
+  if (G && G.syn) { if (id === 'berimbau' && G.syn.forro) s.b += 2; if (id === 'chapeu' && G.syn.vaquejada) s.n += 1; }
   return s;
 }
 function wupDesc(id, l) {
@@ -532,7 +555,7 @@ let grid = new Map(); const CELL = 24;
 
 function newRunState() {
   return { time: 0, kills: 0, rap: 0, adapt: 1, adaptT: 5, hpMult: 1, spawnAcc: 0, shake: 0, hurtFlash: 0, bossDone: {}, events: {}, pendingLv: 0, pendingChest: 0, revived: false, dawn: 0, boss: null,
-    dmg: {}, buff: 0, confuse: 0, slow: 0, blood: false, rain: 0, rainAt: [rand(150, 330), rand(480, 660)], eliteT: 120, foodT: 8, ride: 0, fita: false };
+    dmg: {}, buff: 0, confuse: 0, slow: 0, blood: false, rain: 0, rainAt: [rand(150, 330), rand(480, 660)], eliteT: 120, foodT: 8, ride: 0, fita: false, syn: {}, byEnemy: {}, warn: null };
 }
 function newPlayer(ch) {
   return { char: ch, x: MAPW / 2, y: MAPH / 2, r: 5, hp: 0, maxHp: 0, inv: 0, xp: 0, level: 1, next: need(1), fx: 1, fy: 0, moving: false, t: 0,
@@ -648,7 +671,7 @@ function pickType(m) {
   for (const x of w) { r -= x[1]; if (r <= 0) return x[0]; } return 'morcego';
 }
 function spawnBoss(b) {
-  const [x, y] = edgePos(); let e;
+  const [x, y] = edgePos(G.warn ? G.warn.ang : undefined); let e;
   if (b.type === 'boitata') {
     e = spawnEnemy('boitata', x, y); e.segs = []; let prev = e;
     for (let i = 0; i < 18; i++) { const s = spawnEnemy('boitataSeg', x, y); s.parent = e; s.prev = prev; s.idx = i; e.segs.push(s); prev = s; }
@@ -666,12 +689,12 @@ function director(dt) {
     else if (hr < 0.4 || player.level < exp * 0.7) G.adapt = Math.max(0.65, G.adapt - 0.06);
   }
   G.hpMult = 1 + t / 200;
-  const cap = Math.min(340, 70 + t / 2.6), rate = Math.min(22, 1.5 + t / 30) * G.adapt;
+  const ramp = Math.min(1, 0.4 + t / 100), cap = Math.min(340, 40 + t / 2.4), rate = Math.min(22, 1.5 + t / 30) * G.adapt * ramp; // começo mais leve
   G.spawnAcc = Math.min(5, G.spawnAcc + rate * dt);
   while (G.spawnAcc >= 1 && enemies.length < cap) { G.spawnAcc -= 1; const [x, y] = edgePos(); spawnEnemy(pickType(m), x, y); }
   const sw = Math.floor(t / 60);
   if (sw >= 1 && !G.events['s' + sw]) {
-    G.events['s' + sw] = 1; const a = Math.random() * 6.283, n = Math.round((14 + m * 2) * G.adapt);
+    G.events['s' + sw] = 1; const a = Math.random() * 6.283, n = Math.round((8 + m * 2.5) * G.adapt);
     for (let i = 0; i < n; i++) { const [x, y] = edgePos(a); spawnEnemy('vagalume', x, y); }
   }
   for (const st of [450, 750]) if (t >= st && !G.events['m' + st]) {
@@ -679,7 +702,10 @@ function director(dt) {
     for (let i = 0; i < 10; i++) { const [x, y] = edgePos(a); const e = spawnEnemy('mula', x, y); const dx = player.x - x, dy = player.y - y, d = Math.hypot(dx, dy) || 1; e.ch = 2.4; e.cdx = dx / d; e.cdy = dy / d; e.cc = 4; }
   }
   if (!G.blood && t >= 720) { G.blood = true; banner('Lua de sangue!'); }
-  for (const b of BOSSES) if (t >= b.t && !G.bossDone[b.type]) { G.bossDone[b.type] = 1; spawnBoss(b); }
+  for (const b of BOSSES) {
+    if (t >= b.t - 5 && !G.events['w' + b.type]) { G.events['w' + b.type] = 1; G.warn = { ang: Math.random() * 6.283, until: b.t }; banner(b.name + ' se aproxima...'); sfx('warn'); }
+    if (t >= b.t && !G.bossDone[b.type]) { G.bossDone[b.type] = 1; spawnBoss(b); }
+  }
   if (t >= 200) { const k = Math.floor((t - 200) / 100); if (!G.events['u' + k]) { G.events['u' + k] = 1; spawnFlock(); } }
   if (t >= 90) { const k = Math.floor((t - 90) / 120); if (!G.events['c' + k]) { G.events['c' + k] = 1; spawnCart(); } }
   if (t >= G.eliteT) { G.eliteT = t + rand(40, 60); spawnElite(); }
@@ -688,7 +714,7 @@ function director(dt) {
   if (G.foodT <= 0) { G.foodT = rand(16, 26) / player.st.luck; spawnFood(); }
 }
 function updEnemies(dt) {
-  const px = player.x, py = player.y, dm = 1 + G.time / 600;
+  const px = player.x, py = player.y, dm = (1 + G.time / 600) * Math.min(1, 0.6 + G.time / 150);
   for (const e of enemies) {
     if (!e.alive) continue;
     e.t += dt; e.flash -= dt;
@@ -757,7 +783,7 @@ function hurt(e, dmg, kx, ky, src) {
   if (t.hp <= 0) kill(t);
 }
 function kill(e) {
-  if (!e.alive) return; e.alive = false; G.kills++;
+  if (!e.alive) return; e.alive = false; G.kills++; G.byEnemy[e.type] = (G.byEnemy[e.type] || 0) + 1;
   burst(e.x, e.y, e.d.col, e.d.boss ? 40 : 6, e.type === 'vagalume');
   if (e.d.boss) {
     if (e.segs) for (const s of e.segs) { s.alive = false; burst(s.x, s.y, '#e8832a', 4, true); }
@@ -861,7 +887,7 @@ function fire(w, s) {
       const n = Math.min(4, s.n), reach = 34 * s.area, half = 11 * s.area;
       for (let i = 0; i < n; i++) {
         const [dx, dy] = dirs[i]; query(px, py, reach + 16, Q);
-        for (const e of Q) { if (!e.alive) continue; const rx = e.x - px, ry = e.y - py, al = rx * dx + ry * dy, pe = Math.abs(-rx * dy + ry * dx); if (al > -6 && al < reach + e.r && pe < half + e.r) hurt(e, s.dmg, dx * 45, dy * 45, 'peixeira'); }
+        for (const e of Q) { if (!e.alive) continue; const rx = e.x - px, ry = e.y - py, al = rx * dx + ry * dy, pe = Math.abs(-rx * dy + ry * dx); if (al > -6 && al < reach + e.r && pe < half + e.r) hurt(e, s.dmg * (G.syn.pescaria && (e.parent || e).root > 0 ? 1.5 : 1), dx * 45, dy * 45, 'peixeira'); }
         fx.push({ k: 'slash', dx, dy, reach, half, life: 0.16, max: 0.16, ev: w.ev });
       }
       sfx('swing'); break;
@@ -925,7 +951,8 @@ function fire(w, s) {
 function explode(x, y, R, dmg) {
   query(x, y, R + 16, Q);
   for (const e of Q) { if (!e.alive) continue; const dx = e.x - x, dy = e.y - y, d = Math.hypot(dx, dy) || 1; if (d < R + e.r) hurt(e, dmg, dx / d * 60, dy / d * 60, 'rojao'); }
-  fx.push({ k: 'boom', x, y, r: R, life: 0.3, max: 0.3 }); burst(x, y, '#f2c14e', 14, true); G.shake = Math.max(G.shake, 2.5); sfx('boom');
+  fx.push({ k: 'boom', x, y, r: R, life: 0.3, max: 0.3 });
+  if (G.syn.fogos) pools.push({ x, y, r: R * 0.6, life: G.rain > 0 ? 0.8 : 2, max: 2, dmg: dmg * 0.12, tk: 0 }); burst(x, y, '#f2c14e', 14, true); G.shake = Math.max(G.shake, 2.5); sfx('boom');
 }
 function updProjs(dt) {
   for (const p of projs) {
@@ -1023,6 +1050,7 @@ function update(dt) {
   if (!G.dawn) updWeapons(dt);
   updProjs(dt); updPools(dt); updWaves(dt); updItems(dt); updFx(dt);
   G.shake = Math.max(0, G.shake - dt * 12); G.hurtFlash -= dt;
+  G.saveT = (G.saveT || 15) - dt; if (G.saveT <= 0) { G.saveT = 15; saveRun(); }
   if (G.time >= 300) unlockAch('noite5');
   if (G.kills >= 1000) unlockAch('mil');
   if (G.time >= RUN && !G.dawn) startDawn();
@@ -1110,6 +1138,15 @@ function drawGround() {
     if (s.k === 'capela') { shadow(s.x, s.y + 6, 12); drawSpr(S.capela, s.x, s.y); if (s.charge > 5) { ctx.strokeStyle = 'rgba(180,210,255,0.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(s.x, s.y + 4, 22, 0, 6.283); ctx.stroke(); } }
     else drawSpr(s.cd <= 0 && !(G.rain > 0) ? S.i_fogueira : S.cinza, s.x, s.y, { sc: 2 });
   }
+}
+function drawWarn() {
+  const w = G.warn; if (!w || G.time >= w.until) return;
+  const pulse = 0.5 + 0.5 * Math.sin(G.time * 12), dx = Math.cos(w.ang), dy = Math.sin(w.ang);
+  const k = Math.min((VW / 2 - 16) / Math.max(1e-6, Math.abs(dx)), (VH / 2 - 16) / Math.max(1e-6, Math.abs(dy))), x = VW / 2 + dx * k, y = VH / 2 + dy * k;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, 90); g.addColorStop(0, `rgba(224,85,69,${0.35 * pulse})`); g.addColorStop(1, 'rgba(224,85,69,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+  ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.rotate(w.ang);
+  ctx.fillStyle = `rgba(224,85,69,${0.5 + 0.5 * pulse})`; ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-5, -7); ctx.lineTo(-5, 7); ctx.closePath(); ctx.fill();
+  ctx.restore();
 }
 function drawMini() {
   const W = 66, H = 44, x0 = VW - W - 6, y0 = VH - H - 6, kx = W / MAPW, ky = H / MAPH;
@@ -1225,7 +1262,7 @@ function drawJoy() {
 }
 function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach');
+  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach' && mode !== 'stats');
   let cx, cy;
   if (inRun) { cx = player.x; cy = player.y; } else { cx = MAPW / 2 + Math.sin(menuT * 0.05) * 420; cy = MAPH / 2 + Math.cos(menuT * 0.037) * 260; }
   const sh = inRun && mode === 'play' ? G.shake : 0;
@@ -1247,7 +1284,7 @@ function render() {
     if (G.rain > 0) { const a = Math.min(1, G.rain / 2, (30 - G.rain) / 2), T = G.time * 260; ctx.fillStyle = `rgba(20,30,60,${0.25 * a})`; ctx.fillRect(0, 0, VW, VH); ctx.strokeStyle = `rgba(160,190,240,${0.45 * a})`; ctx.lineWidth = 1; ctx.beginPath();
       for (let i = 0; i < 90; i++) { const x = (i * 97.3 + T * 0.25) % (VW + 20) - 10, y = (i * 53.7 + T) % (VH + 20) - 10; ctx.moveTo(Math.round(x), Math.round(y)); ctx.lineTo(Math.round(x - 2), Math.round(y + 6)); }
       ctx.stroke(); }
-    drawMini();
+    drawWarn(); drawMini();
     if (G.dawn) { ctx.fillStyle = `rgba(255,190,120,${Math.min(0.85, G.dawn / 2.6)})`; ctx.fillRect(0, 0, VW, VH); }
     if (G.hurtFlash > 0) { ctx.fillStyle = `rgba(200,40,40,${G.hurtFlash * 0.5})`; ctx.fillRect(0, 0, VW, VH); }
     drawJoy();
@@ -1292,11 +1329,13 @@ function goto(name) {
   else if (name === 'chars') { mode = 'chars'; renderChars(); }
   else if (name === 'shop') { mode = 'shop'; renderShop(); }
   else if (name === 'ach') { mode = 'ach'; renderAch(); }
+  else if (name === 'stats') { mode = 'stats'; renderStats(); }
   refreshRap(); show(name);
 }
 function renderMenu() {
   const b = save.best; $('#rec').textContent = b.time ? `Recorde: ${fmt(b.time)}, nível ${b.level}, ${b.kills} abates` : 'A lua está alta. Boa sorte, cabra.';
   $('#btn-sound').textContent = save.sound ? 'Som ligado' : 'Som desligado';
+  const d = loadRun(), bc = $('#btn-continue'); bc.classList.toggle('hidden', !d); if (d) bc.textContent = `Continuar a noite (${fmt(d.G.time)})`;
 }
 function renderChars() {
   const box = $('#charlist'); box.innerHTML = '';
@@ -1326,11 +1365,23 @@ function renderShop() {
     box.appendChild(el);
   }
 }
+function renderStats() {
+  const st = save.stats, top = o => Object.entries(o).sort((a, b) => b[1] - a[1])[0], n = v => Math.round(v).toLocaleString('pt-BR');
+  const h = Math.floor(st.time / 3600), m = Math.floor(st.time % 3600 / 60), te = top(st.enemies), tw = top(st.weapons);
+  const rows = [['Partidas', st.runs], ['Noites vencidas', st.wins], ['Tempo jogado', h ? `${h}h ${m}min` : `${m}min`], ['Inimigos derrotados', n(st.kills)],
+    ['Inimigo mais derrotado', te ? `${ENAMES[te[0]] || te[0]} (${n(te[1])})` : 'Nenhum ainda'], ['Arma que mais causou dano', tw && WEAPONS[tw[0]] ? WEAPONS[tw[0]].name : 'Nenhuma ainda'],
+    ['Recorde de tempo', save.best.time ? fmt(save.best.time) : 'Nenhum ainda'], ['Recorde de abates', n(save.best.kills)]];
+  $('#statlist').innerHTML = rows.map(([k, v]) => `<div class="panel item"><div class="tx"><b>${v}</b><span>${k}</span></div></div>`).join('');
+}
 function renderAch() {
   $('#achlist').innerHTML = Object.entries(ACH).map(([id, a]) => `<div class="panel item ${save.ach[id] ? 'done' : 'off'}"><div class="tx"><b>${a.name}</b><span>${a.desc} ${a.reward}.</span></div><span>${save.ach[id] ? 'Feita' : ''}</span></div>`).join('');
 }
 
 /* ---------------- subir de nível ---------------- */
+function hasW(id) { return player.weapons.some(w => w.id === id); }
+function refreshSyn(silent) {
+  for (const k in SYN) { const on = hasW(SYN[k].a) && hasW(SYN[k].b); if (on && !G.syn[k] && !silent) { toast('Sinergia: ' + SYN[k].name + '!'); sfx('win'); } G.syn[k] = on; }
+}
 function rollOptions() {
   const p = player, pool = [];
   for (const w of p.weapons) { const W = WEAPONS[w.id]; if (!w.ev && w.lvl >= WMAX && p.pass[W.evo]) pool.push({ k: 'evo', id: w.id }); }
@@ -1351,7 +1402,7 @@ function cardHTML(o) {
   let ico, name, tag, desc;
   if (o.k === 'wnew' || o.k === 'wup' || o.k === 'evo') {
     const W = WEAPONS[o.id], w = player.weapons.find(x => x.id === o.id); ico = icon(o.id);
-    if (o.k === 'wnew') { name = W.name; tag = 'Nova arma'; desc = W.desc; }
+    if (o.k === 'wnew') { name = W.name; tag = 'Nova arma'; desc = W.desc; const sy = Object.values(SYN).find(x => (x.a === o.id && hasW(x.b)) || (x.b === o.id && hasW(x.a))); if (sy) desc += ' Sinergia: ' + sy.name + '.'; }
     else if (o.k === 'wup') { name = W.name; tag = `Nível ${w.lvl + 1}`; desc = wupDesc(o.id, w.lvl); }
     else { name = W.evoName; tag = 'Evolução'; desc = W.evoDesc; }
   } else if (o.k === 'pnew' || o.k === 'pup') {
@@ -1373,7 +1424,7 @@ function openLevel() {
 }
 function choose(o) {
   if (mode !== 'level') return; sfx('ui'); const p = player;
-  if (o.k === 'wnew') p.weapons.push({ id: o.id, lvl: 1, cd: 0.2, ev: false });
+  if (o.k === 'wnew') { p.weapons.push({ id: o.id, lvl: 1, cd: 0.2, ev: false }); refreshSyn(); }
   else if (o.k === 'wup') p.weapons.find(w => w.id === o.id).lvl++;
   else if (o.k === 'evo') { p.weapons.find(w => w.id === o.id).ev = true; unlockAch('evolui'); }
   else if (o.k === 'pnew' || o.k === 'pup') { p.pass[o.id] = (p.pass[o.id] || 0) + 1; recalc(); }
@@ -1424,11 +1475,35 @@ function openChest() {
   }, 70);
 }
 
+/* ---------------- salvar a noite ---------------- */
+const RUN_KEY = 'visagem-run-v1';
+function saveRun() {
+  if (!G || !player || G.dawn || !['play', 'pause', 'level', 'chest'].includes(mode)) return;
+  const data = { v: 1, G: Object.assign({}, G, { boss: null }), boss: G.boss && G.boss.alive ? { type: G.boss.type, f: G.boss.hp / G.boss.maxHp } : null,
+    p: { char: player.char, spr: player.spr, x: player.x, y: player.y, hp: player.hp, xp: player.xp, level: player.level, next: player.next, weapons: player.weapons.map(w => ({ id: w.id, lvl: w.lvl, ev: w.ev })), pass: player.pass },
+    spots, acudes, items: items.filter(i => i.kind !== 'xp').map(i => ({ x: i.x, y: i.y, kind: i.kind, v: i.v, food: !!i.food })) };
+  try { localStorage.setItem(RUN_KEY, JSON.stringify(data)); } catch (e) {}
+}
+function loadRun() { try { const d = JSON.parse(localStorage.getItem(RUN_KEY)); return d && d.v === 1 && d.p && CHARS[d.p.char] ? d : null; } catch (e) { return null; } }
+function clearRun() { try { localStorage.removeItem(RUN_KEY); } catch (e) {} }
+function resumeRun() {
+  const d = loadRun(); if (!d) return;
+  audioInit(); resetLists(); lastChar = d.p.char;
+  G = Object.assign(newRunState(), d.G, { boss: null });
+  player = newPlayer(d.p.char);
+  Object.assign(player, { spr: d.p.spr, x: d.p.x, y: d.p.y, xp: d.p.xp, level: d.p.level, next: d.p.next, pass: d.p.pass, weapons: d.p.weapons.map(w => Object.assign({ cd: 0.5 }, w)) });
+  recalc(); player.hp = Math.min(player.maxHp, d.p.hp);
+  spots.push(...d.spots); acudes.push(...d.acudes);
+  for (const i of d.items) { drop(i.x, i.y, i.kind, i.v); items[items.length - 1].food = i.food; }
+  if (d.boss) { spawnBoss(BOSSES.find(x => x.type === d.boss.type)); G.boss.hp = G.boss.maxHp * d.boss.f; }
+  refreshSlots(); refreshSyn(true); hud(true); mode = 'play'; pauseGame();
+}
+
 /* ---------------- fluxo da partida ---------------- */
 function resetLists() { for (const a of [enemies, projs, pools, waves, items, parts, nums, fx, marks, goos, spots, carts, acudes]) a.length = 0; grid.clear(); bq.length = 0; clearTimeout(bannerT); $('#banner').classList.remove('on'); }
 function startRun(ch) {
-  audioInit(); lastChar = ch; resetLists();
-  G = newRunState(); player = newPlayer(ch); recalc(); player.hp = player.maxHp; makeSpots();
+  audioInit(); lastChar = ch; resetLists(); clearRun();
+  G = newRunState(); player = newPlayer(ch); recalc(); player.hp = player.maxHp; makeSpots(); refreshSyn(true);
   refreshSlots(); hideScreens(); hud(true); mode = 'play'; last = performance.now();
   if (isTouch && !document.fullscreenElement && document.documentElement.requestFullscreen) {
     document.documentElement.requestFullscreen().then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {})).catch(() => {});
@@ -1446,7 +1521,8 @@ function pauseGame() {
     if (s.rad || s.r) bits.push('alcance ' + Math.round(s.rad || s.r));
     const evo = w.ev ? 'Evoluída.' : `Evolui no nível ${WMAX} com ${PASSIVES[W.evo].name} (${player.pass[W.evo] ? 'você tem' : 'falta'}).`;
     return `<div class="panel item"><img src="${icon(w.id)}" alt=""><div class="tx"><b>${w.ev ? W.evoName : W.name} (nível ${w.lvl})</b><span>${bits.join(', ')}</span><span>${evo}</span></div></div>`;
-  }).join('') + Object.entries(player.pass).map(([k, l]) => `<div class="panel item"><img src="${icon(k)}" alt=""><div class="tx"><b>${PASSIVES[k].name} (nível ${l}/${PASSIVES[k].max})</b><span>${PASSIVES[k].desc}</span></div></div>`).join('');
+  }).join('') + Object.entries(player.pass).map(([k, l]) => `<div class="panel item"><img src="${icon(k)}" alt=""><div class="tx"><b>${PASSIVES[k].name} (nível ${l}/${PASSIVES[k].max})</b><span>${PASSIVES[k].desc}</span></div></div>`).join('') +
+    Object.entries(SYN).filter(([k]) => G.syn[k]).map(([, x]) => `<div class="panel item"><div class="tx"><b>Sinergia: ${x.name}</b><span>${x.desc}</span></div></div>`).join('');
   show('pause');
 }
 function resumeGame() { if (mode !== 'pause') return; hideScreens(); mode = 'play'; last = performance.now(); audioInit(); }
@@ -1455,6 +1531,10 @@ function endRun(win) {
   const t = Math.min(G.time, RUN), earned = Math.floor(G.kills / 40) + Math.floor(t / 60) * 2 + G.rap;
   save.rap += earned; const b = save.best;
   b.time = Math.max(b.time, t); b.kills = Math.max(b.kills, G.kills); b.level = Math.max(b.level, player.level);
+  const st = save.stats; st.runs++; if (win) st.wins++; st.time += t; st.kills += G.kills;
+  for (const k in G.byEnemy) st.enemies[k] = (st.enemies[k] || 0) + G.byEnemy[k];
+  for (const k in G.dmg) st.weapons[k] = (st.weapons[k] || 0) + G.dmg[k];
+  clearRun();
   if (win) unlockAch('amanhecer');
   persist();
   $('#over-title').textContent = win ? 'O sol nasceu!' : 'A visagem te pegou';
@@ -1470,7 +1550,7 @@ function endRun(win) {
 /* ---------------- ligações da interface ---------------- */
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { audioInit(); goto(b.dataset.go); }));
 $('#btn-sound').onclick = () => { audioInit(); save.sound = !save.sound; persist(); renderMenu(); sfx('ui'); };
-$('#pausebtn').onclick = pauseGame;
+$('#pausebtn').onclick = () => { pauseGame(); saveRun(); };
 $('#btn-chest').onclick = () => { if (mode !== 'chest') return; sfx('ui'); hideScreens(); mode = 'play'; last = performance.now(); };
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 let installEvt = null;
@@ -1479,7 +1559,9 @@ $('#btn-install').onclick = async () => { if (!installEvt) return; installEvt.pr
 $('#btn-resume').onclick = resumeGame;
 $('#btn-quit').onclick = () => endRun(false);
 $('#btn-again').onclick = () => startRun(lastChar);
-document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { pauseGame(); saveRun(); } });
+addEventListener('pagehide', saveRun);
+$('#btn-continue').onclick = () => { sfx('ui'); resumeRun(); };
 addEventListener('resize', resize);
 document.querySelectorAll('img[data-ico]').forEach(i => i.src = icon(i.dataset.ico));
 $('#moon').src = moonImg(); $('#title').textContent = TITLE;

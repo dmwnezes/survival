@@ -20,6 +20,10 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 - Chefões: Lobisomem (5:00), Corpo-Seco (10:00), Cuca (12:00, poções que deixam lento) e Boitatá (14:00)
 - Eventos: carro de boi que atropela inimigos e dá carona, açudes que deixam os inimigos lentos, capelas que curam, fogueiras que dão +30% de dano, chuva no sertão e lua de sangue a partir dos 12:00
 - Comida espalhada pelo mapa (tapioca, cuscuz, baião de dois)
+- Aviso 5 segundos antes de cada chefão, com seta indicando de onde ele vem
+- Sinergias entre armas: Noite de Fogos, Pescaria, Roda de Forró e Vaquejada
+- A noite é salva sozinha: dá para fechar o jogo e continuar depois
+- Tela de estatísticas gerais
 - Minimapa, pausa com os números de cada arma, dano por arma na tela final, dificuldade adaptativa, loja, conquistas e recordes salvos no aparelho
 - Instalável no celular (PWA) e funciona offline
 
