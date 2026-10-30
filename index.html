@@ -23,7 +23,7 @@ img{image-rendering:pixelated;image-rendering:crisp-edges}
 #ui{position:fixed;inset:0;pointer-events:none;z-index:5}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   padding:max(12px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));
-  pointer-events:auto;background:rgba(5,8,26,.62);overflow-y:auto;text-align:center}
+  pointer-events:auto;background:rgba(5,8,26,.62);overflow-y:auto;text-align:center;justify-content:safe center}
 .screen.on{display:flex}
 #s-menu{background:transparent}
 h1{font-size:clamp(52px,15vh,124px);font-weight:400;letter-spacing:.08em;color:var(--moon);line-height:.85;
@@ -117,11 +117,27 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 .drow .db i{display:block;height:100%;background:var(--acc)}
 .drow .dv{width:4.6em;text-align:right;color:var(--moon)}
 #buffs{color:var(--acc);font-size:18px}
+#charlist{flex-wrap:nowrap;max-width:100%;overflow-x:auto;padding:4px 6px 10px;justify-content:safe center}
+#charlist .char{flex:0 0 auto}
+@media (max-height:520px){
+  h2{font-size:clamp(26px,7vh,40px)}
+  .screen{gap:6px}
+  .char{width:clamp(150px,21vw,190px);font-size:17px;padding:8px}
+  .char b{font-size:24px}
+  .char .cimg{width:34px;height:40px;margin:2px 0}
+  .char .btn{font-size:19px;margin-top:5px}
+  .char .skin{font-size:16px}
+  .char .lk{font-size:15px}
+  .list{max-height:56vh}
+  .card{padding:8px 8px 10px;font-size:16px}
+  .card b{font-size:22px}
+  .card .ci{width:32px;height:32px}
+}
 #over-dance{width:60px;height:70px;animation:danca .9s steps(4) infinite}
 @keyframes danca{0%{transform:translateY(0) scaleX(1)}25%{transform:translateY(-8px) scaleX(1)}50%{transform:translateY(0) scaleX(-1)}75%{transform:translateY(-8px) scaleX(-1)}}
 @media (prefers-reduced-motion:reduce){#over-dance{animation:none}}
 .slot.gold{border-color:#ffd23f;box-shadow:0 0 6px #ffd23f}
-#abil{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));width:76px;height:76px;border-radius:50%;pointer-events:auto;background:rgba(22,29,69,.88);border:3px solid var(--acc);color:var(--moon);font-family:inherit;font-size:21px;line-height:1;overflow:hidden;cursor:pointer;padding:0}
+#abil{position:absolute;right:max(2.5vh,env(safe-area-inset-right));bottom:calc(22vh + 10px);width:76px;height:76px;border-radius:50%;pointer-events:auto;background:rgba(22,29,69,.88);border:3px solid var(--acc);color:var(--moon);font-family:inherit;font-size:21px;line-height:1;overflow:hidden;cursor:pointer;padding:0}
 #abil.cool{border-color:var(--line)}
 #abil span{position:relative;z-index:1}
 #abil i{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(5,8,26,.72)}
@@ -257,7 +273,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
    save no localStorage. ?speed=4 acelera o tempo para testes.
    ========================================================= */
 const TITLE = 'VISAGEM';
-const MAPW = 4800, MAPH = 3200, RUN = 900; // 15 minutos
+const MAPW = 9600, MAPH = 6400, RUN = 900; // 15 minutos
 const SPEED = Math.max(1, Math.min(10, +new URLSearchParams(location.search).get('speed') || 1));
 const $ = s => document.querySelector(s);
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -654,7 +670,7 @@ function checkRotate() {
   $('#rotate').classList.toggle('show', portrait);
   if (portrait && mode === 'play') pauseGame();
 }
-let groundPat = null, decor = [];
+let groundPat = null, decor = [], decorGrid = new Map();
 function makeWorld() {
   const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
   x.fillStyle = '#1a2242'; x.fillRect(0, 0, 64, 64);
@@ -662,18 +678,19 @@ function makeWorld() {
   for (let i = 0; i < 240; i++) { x.fillStyle = cols[i % 4]; x.fillRect(r() * 64 | 0, r() * 64 | 0, 1 + (r() * 2 | 0), 1); }
   groundPat = ctx.createPattern(c, 'repeat');
   const rr = mulberry(7); decor = [];
-  for (let i = 0; i < 4400; i++) {
+  for (let i = 0; i < 17600; i++) {
     const v = rr(), k = v < 0.1 ? 'mandacaru' : v < 0.27 ? 'xique' : v < 0.5 ? 'pedra' : 'capim';
     const dx = rr() * MAPW | 0, dy = rr() * MAPH | 0;
     if (Math.abs(dx - MAPW / 2) < 40 && Math.abs(dy - MAPH / 2) < 30) continue;
     decor.push({ k, x: dx, y: dy });
   }
+  decorGrid = new Map(); for (const d of decor) { const key = ((d.x / 256) | 0) * 1000 + ((d.y / 256) | 0); let a = decorGrid.get(key); if (!a) decorGrid.set(key, a = []); a.push(d); }
 }
 
 /* ---------------- estado ---------------- */
 let mode = 'menu', G = null, player = null, lastChar = 'vaqueiro';
 const enemies = [], projs = [], pools = [], waves = [], items = [], parts = [], nums = [], fx = [], marks = [], goos = [], spots = [], carts = [], acudes = [], traps = [], whirls = [], critters = [], honeys = [], trails = [], stars = [];
-const BRIDGES = [0.18, 0.42, 0.66, 0.88].map(k => k * MAPH);
+const BRIDGES = [0.07, 0.19, 0.31, 0.43, 0.56, 0.68, 0.8, 0.92].map(k => k * MAPH);
 function riverX(y) { return MAPW * 0.62 + Math.sin(y * 0.004) * 80; }
 function onBridge(y) { return BRIDGES.some(b => Math.abs(y - b) < 22); }
 function inRiver(x, y) { return Math.abs(x - riverX(y)) < 36 && !onBridge(y); }
@@ -685,7 +702,7 @@ let grid = new Map(); const CELL = 24;
 
 function newRunState() {
   return { time: 0, kills: 0, rap: 0, adapt: 1, adaptT: 5, hpMult: 1, spawnAcc: 0, shake: 0, hurtFlash: 0, bossDone: {}, events: {}, pendingLv: 0, pendingChest: 0, revived: false, dawn: 0, boss: null,
-    dmg: {}, buff: 0, confuse: 0, slow: 0, blood: false, rain: 0, rainAt: [rand(150, 330), rand(480, 660)], eliteT: 120, foodT: 8, ride: 0, fita: false, syn: {}, byEnemy: {}, warn: null, iaraT: 20, muriAcc: 0, cajuRain: 0, crAcc: 0, cajuRainT: rand(240, 360), trailT: 0, dive: 0, nm: false, inf: !!(save.gmode === 'infinito' && save.ach.amanhecer), cang: 0, cangT: 0, giant: 0, pwT: 50, henT: 180, finalT: 0, finalUsed: false, abCd: 0, altar: null, sand: false, spikeT: 0, nProps: 0, nm: !!(save.gmode === 'pesadelo' && save.ach.amanhecer) };
+    dmg: {}, buff: 0, confuse: 0, slow: 0, blood: false, rain: 0, rainAt: [rand(150, 330), rand(480, 660)], eliteT: 120, foodT: 8, ride: 0, fita: false, syn: {}, byEnemy: {}, warn: null, evNext: 0, evDue: null, evCount: null, iaraT: 20, muriAcc: 0, cajuRain: 0, crAcc: 0, cajuRainT: rand(240, 360), trailT: 0, dive: 0, nm: false, inf: !!(save.gmode === 'infinito' && save.ach.amanhecer), cang: 0, cangT: 0, giant: 0, pwT: 50, henT: 180, finalT: 0, finalUsed: false, abCd: 0, altar: null, sand: false, spikeT: 0, nProps: 0, nm: !!(save.gmode === 'pesadelo' && save.ach.amanhecer) };
 }
 function newPlayer(ch) {
   return { char: ch, x: MAPW / 2, y: MAPH / 2, r: 5, hp: 0, maxHp: 0, inv: 0, xp: 0, level: 1, next: need(1), fx: 1, fy: 0, moving: false, t: 0,
@@ -792,9 +809,9 @@ function makeSpots() {
     village = { x, y, r: 170, houses, entered: false, t: 0, def: 0, vill: [] };
   }
   const free = (x, y, m) => Math.hypot(x - MAPW / 2, y - MAPH / 2) > 160 && !(village && dist2(x, y, village.x, village.y) < (village.r + m) ** 2);
-  place('capela', 8); place('fogo', 14); place('altar', 6); place('coronel', 3); place('cruz', 12); place('poco', 4);
-  for (let i = 0; i < 44; i++) { const k = i < 30 ? 'espinho' : 'areia', x = 60 + Math.random() * (MAPW - 120), y = 60 + Math.random() * (MAPH - 120); if (free(x, y, 40) && !nearRiver(x, y, 40)) traps.push({ k, x, y, r: k === 'espinho' ? 14 : rand(26, 40) }); }
-  for (let i = 0, t = 0; i < 8 && t < 400; t++) {
+  place('capela', 20); place('fogo', 36); place('altar', 14); place('coronel', 8); place('cruz', 32); place('poco', 10);
+  for (let i = 0; i < 160; i++) { const k = i < 110 ? 'espinho' : 'areia', x = 60 + Math.random() * (MAPW - 120), y = 60 + Math.random() * (MAPH - 120); if (free(x, y, 40) && !nearRiver(x, y, 40)) traps.push({ k, x, y, r: k === 'espinho' ? 14 : rand(26, 40) }); }
+  for (let i = 0, t = 0; i < 22 && t < 1500; t++) {
     const rx = rand(50, 80), ry = rand(30, 45), x = 120 + Math.random() * (MAPW - 240), y = 100 + Math.random() * (MAPH - 200);
     if (Math.hypot(x - MAPW / 2, y - MAPH / 2) < 220 || nearRiver(x, y, rx + 20) || spots.some(s => dist2(s.x, s.y, x, y) < (rx + 30) ** 2) || acudes.some(a => dist2(a.x, a.y, x, y) < 260 * 260)) continue;
     acudes.push({ x, y, rx, ry }); i++;
@@ -802,7 +819,7 @@ function makeSpots() {
 }
 function placeProps() {
   G.nProps = 0;
-  for (let i = 0; i < 160; i++) {
+  for (let i = 0; i < 480; i++) {
     const x = 40 + Math.random() * (MAPW - 80), y = 40 + Math.random() * (MAPH - 80);
     if (Math.hypot(x - MAPW / 2, y - MAPH / 2) < 120 || inWater(x, y) || nearRiver(x, y, 10)) continue;
     const r = Math.random(); spawnEnemy(r < 0.5 ? 'pote' : r < 0.85 ? 'cerca' : 'carroca', x, y); G.nProps++;
@@ -871,6 +888,38 @@ function spawnBoss(b) {
   e.bossName = b.name; G.boss = e;
   banner(b.name + ' apareceu!'); sfx('boss'); G.shake = 5;
 }
+// Diretor de eventos: um evento grande por vez, com folga entre eles, nunca perto de chefão, chuva ou defesa do vilarejo.
+const EVENTS = {
+  carro:   { first: 90,  every: [110, 150], run: () => spawnCart() },
+  estrela: { first: 125, every: [95, 130], run: () => spawnStar() },
+  vento:   { first: 160, every: [90, 120], run: () => spawnWhirl() },
+  galinha: { first: 185, every: [160, 220], run: () => spawnHen() },
+  urubus:  { first: 205, every: [100, 140], run: () => spawnFlock() },
+  chuva:   { first: 230, every: [240, 300], max: 2, hold: 36, run: () => { G.rain = 30; pools.length = 0; banner('Chuva no sertão!'); } },
+  caipora: { first: 250, every: [120, 160], run: () => spawnCaipora() },
+  cajus:   { first: 280, every: [240, 330], run: () => { G.cajuRain = 10; banner('Chuva de cajus!'); } },
+  mulas:   { first: 450, every: [280, 320], max: 2, run: () => stampede() },
+};
+const EVENT_GAP = 25;
+function eventBlocked(t) {
+  return t < G.evNext || G.rain > 0 || (!G.inf && t > RUN - 15) || (G.boss && G.boss.alive) || (village && village.def > 0) || BOSSES.some(b => t > b.t - 22 && t < b.t + 4) || (G.inf && t >= 900 && (t - 900) % 150 > 128);
+}
+function runEvents(t) {
+  if (!G.evDue) { G.evDue = {}; G.evCount = {}; for (const k in EVENTS) G.evDue[k] = EVENTS[k].first + rand(-10, 10); }
+  if (eventBlocked(t)) return;
+  let pick = null;
+  for (const k in EVENTS) if (t >= G.evDue[k] && (!pick || G.evDue[k] < G.evDue[pick])) pick = k;
+  if (!pick) return;
+  const ev = EVENTS[pick]; ev.run();
+  G.evCount[pick] = (G.evCount[pick] || 0) + 1;
+  G.evDue[pick] = ev.max && G.evCount[pick] >= ev.max ? Infinity : t + rand(ev.every[0], ev.every[1]);
+  G.evNext = t + (ev.hold || EVENT_GAP);
+}
+function spawnHen() { const a = Math.random() * 6.283; critters.push({ x: clamp(player.x + Math.cos(a) * 150, 20, MAPW - 20), y: clamp(player.y + Math.sin(a) * 100, 20, MAPH - 20), ang: a, turn: 0, life: 25, vx: 0 }); banner('Uma galinha de ouro apareceu!'); }
+function stampede() {
+  banner('Estouro de mulas!'); const a = Math.random() * 6.283;
+  for (let i = 0; i < 10; i++) { const [x, y] = edgePos(a); const e = spawnEnemy('mula', x, y); const dx = player.x - x, dy = player.y - y, d = Math.hypot(dx, dy) || 1; e.ch = 2.4; e.cdx = dx / d; e.cdy = dy / d; e.cc = 4; }
+}
 function director(dt) {
   if (G.dawn) return;
   const t = G.time, m = t / 60;
@@ -889,27 +938,16 @@ function director(dt) {
     G.events['s' + sw] = 1; const a = Math.random() * 6.283, n = Math.round((8 + m * 2.5) * G.adapt);
     for (let i = 0; i < n; i++) { const [x, y] = edgePos(a); spawnEnemy('vagalume', x, y); }
   }
-  for (const st of [450, 750]) if (t >= st && !G.events['m' + st]) {
-    G.events['m' + st] = 1; banner('Estouro de mulas!'); const a = Math.random() * 6.283;
-    for (let i = 0; i < 10; i++) { const [x, y] = edgePos(a); const e = spawnEnemy('mula', x, y); const dx = player.x - x, dy = player.y - y, d = Math.hypot(dx, dy) || 1; e.ch = 2.4; e.cdx = dx / d; e.cdy = dy / d; e.cc = 4; }
-  }
   if (!G.blood && t >= 720) { G.blood = true; banner('Lua de sangue!'); }
   for (const b of BOSSES) {
     if (t >= b.t - 5 && !G.events['w' + b.type]) { G.events['w' + b.type] = 1; G.warn = { ang: Math.random() * 6.283, until: b.t }; banner(b.name + ' se aproxima...'); sfx('warn'); }
     if (t >= b.t && !G.bossDone[b.type]) { G.bossDone[b.type] = 1; spawnBoss(b); }
   }
-  if (t >= 200) { const k = Math.floor((t - 200) / 100); if (!G.events['u' + k]) { G.events['u' + k] = 1; spawnFlock(); } }
-  if (t >= 90) { const k = Math.floor((t - 90) / 120); if (!G.events['c' + k]) { G.events['c' + k] = 1; spawnCart(); } }
-  if (t >= 150) { const k = Math.floor((t - 150) / 70); if (!G.events['v' + k]) { G.events['v' + k] = 1; spawnWhirl(); } }
-  if (t >= 240) { const k = Math.floor((t - 240) / 110); if (!G.events['cp' + k]) { G.events['cp' + k] = 1; spawnCaipora(); } }
-  if (t >= 120) { const k = Math.floor((t - 120) / 100); if (!G.events['st' + k]) { G.events['st' + k] = 1; spawnStar(); } }
-  if (t >= G.cajuRainT) { G.cajuRainT = t + rand(240, 360); G.cajuRain = 10; banner('Chuva de cajus!'); }
   if (G.rain > 0) { G.muriAcc += 1.2 * dt; while (G.muriAcc >= 6 && enemies.filter(e => e.type === 'muricoca').length < 36) { G.muriAcc -= 6; /* limite: eram 150 por chuva */ const a = Math.random() * 6.283; for (let i = 0; i < 6; i++) { const [x, y] = edgePos(a); spawnEnemy('muricoca', x, y); } } }
   if (G.inf && t >= 900) { const k = Math.floor((t - 900) / 150); if (!G.events['ib' + k]) { G.events['ib' + k] = 1; const b = BOSSES[k % BOSSES.length]; spawnBoss(b); G.boss.hp = G.boss.maxHp = G.boss.maxHp * (1 + (t - 900) / 300); } }
   if (t >= G.pwT) { G.pwT = t + rand(45, 65) / player.st.luck; spawnPower(); }
-  if (t >= G.henT) { G.henT = t + rand(150, 220); const a = Math.random() * 6.283; critters.push({ x: clamp(player.x + Math.cos(a) * 150, 20, MAPW - 20), y: clamp(player.y + Math.sin(a) * 100, 20, MAPH - 20), ang: a, turn: 0, life: 25, vx: 0 }); banner('Uma galinha de ouro apareceu!'); }
   if (t >= G.eliteT) { G.eliteT = t + rand(40, 60); spawnElite(); }
-  for (let i = 0; i < 2; i++) if (t >= G.rainAt[i] && !G.events['r' + i]) { G.events['r' + i] = 1; G.rain = 30; pools.length = 0; banner('Chuva no sertão!'); }
+  runEvents(t);
   G.foodT -= dt;
   if (G.foodT <= 0) { G.foodT = rand(16, 26) / player.st.luck; spawnFood(); }
 }
@@ -1034,6 +1072,7 @@ function kill(e) {
     drop(e.x, e.y, 'rap', 10); drop(e.x + 8, e.y, 'cuscuz', 40); drop(e.x - 8, e.y, 'bau', 1);
     if (e.type === 'lobisomem') unlockAch('lobisomem');
     if (G.boss === e) G.boss = null;
+    G.evNext = Math.max(G.evNext || 0, G.time + 12); // respiro depois do chefão
     banner(e.bossName + ' caiu!'); G.shake = 6; sfx('boom');
   } else {
     drop(e.x, e.y, 'xp', e.d.xp * (G.blood ? 2 : 1));
@@ -1434,7 +1473,7 @@ function updWorld(dt) {
   compact(carts, c => c.life > 0);
   for (const g of goos) { g.life -= dt; if (dist2(g.x, g.y, player.x, player.y) < g.r * g.r * 0.6) G.slow = 1; }
   compact(goos, g => g.life > 0);
-  for (const m of marks) { m.life -= dt; if (m.life > 0 && dist2(m.x, m.y, player.x, player.y) < 25) { if (G.confuse <= 0) toast('O Curupira te confundiu!'); G.confuse = 1.5; m.life = 0; } }
+  for (const m of marks) m.life -= dt; // pegadas só de enfeite: inverter controles confundia demais
   compact(marks, m => m.life > 0);
   for (const s of spots) {
     const d2 = dist2(s.x, s.y, player.x, player.y);
@@ -1542,7 +1581,8 @@ function drawAllies() {
     if (w.id === 'galo' && w.galos) for (const g of w.galos) { shadow(g.x, g.y + 4, 6); drawSpr(S.galo, g.x, g.y - (g.peck > 0 ? 1 : 0), { flip: g.vx < 0 }); }
   }
 }
-function drawDecor() { for (const d of decor) if (onScreen(d.x, d.y, 20) && !nearRiver(d.x, d.y, 4) && !(acudes.length && inWater(d.x, d.y)) && !(village && dist2(d.x, d.y, village.x, village.y) < village.r * village.r)) { const s = S[d.k]; if (d.k === 'mandacaru') shadow(d.x, d.y + s.H / 2 - 1, 8); drawSpr(s, d.x, d.y); } }
+function drawDecor() { const cx0 = Math.max(0, ((camX - 30) / 256) | 0), cx1 = ((camX + VW + 30) / 256) | 0, cy0 = Math.max(0, ((camY - 30) / 256) | 0), cy1 = ((camY + VH + 30) / 256) | 0;
+  for (let gx = cx0; gx <= cx1; gx++) for (let gy = cy0; gy <= cy1; gy++) { const cell = decorGrid.get(gx * 1000 + gy); if (cell) for (const d of cell) if (onScreen(d.x, d.y, 20) && !nearRiver(d.x, d.y, 4) && !(acudes.length && inWater(d.x, d.y)) && !(village && dist2(d.x, d.y, village.x, village.y) < village.r * village.r)) { const s = S[d.k]; if (d.k === 'mandacaru') shadow(d.x, d.y + s.H / 2 - 1, 8); drawSpr(s, d.x, d.y); } } }
 function drawGround() {
   for (const h of honeys) { if (!onScreen(h.x, h.y, h.r)) continue; ctx.globalAlpha = 0.4 * Math.min(1, h.life / 0.6); ctx.fillStyle = '#e8a020'; ctx.beginPath(); ctx.ellipse(h.x, h.y, h.r, h.r * 0.6, 0, 0, 6.283); ctx.fill(); }
   ctx.globalAlpha = 1;

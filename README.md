@@ -11,7 +11,7 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 - Arma no nível 8 + o item certo = evolução.
 
 ## Conteúdo
-- Mapa grande (4800 x 3200) com vilarejo assombrado, potes, cercas e carroças quebráveis, espinhos, areia movediça, altares e redemoinhos
+- Mapa grande (9600 x 6400) com vilarejo assombrado, potes, cercas e carroças quebráveis, espinhos, areia movediça, altares e redemoinhos
 - Habilidade ativa por personagem (Laço, Mergulho, Forró e Benzer), no botão ou na barra de espaço
 - Evolução com dois caminhos: Área ou Força
 - Cenas de abertura e de amanhecer
@@ -28,7 +28,7 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 - 11 armas com evolução: Chapéu de Couro, Peixeira, Baladeira, Sanfona, Fogueira de São João, Rojão, Tarrafa, Berimbau, Cordel Mágico, Aboio e Galo de Briga
 - 11 itens passivos, incluindo Cachaça de Alambique, Ferradura, Lampião a Gás e Fitinha do Bonfim (salva da morte uma vez)
 - Visuais alternativos dos personagens liberados por conquista
-- Inimigos: morcego, vagalume, Saci, Mula sem cabeça, Curupira (pegadas que invertem o controle) e revoadas de urubus
+- Inimigos: morcego, vagalume, Saci, Mula sem cabeça, Curupira e revoadas de urubus
 - Inimigos de elite que soltam o Baú do Coronel (roleta que sobe de 1 a 3 armas)
 - Chefões: Lobisomem (5:00), Corpo-Seco (10:00), Cuca (12:00, poções que deixam lento) e Boitatá (14:00)
 - Eventos: carro de boi que atropela inimigos e dá carona, açudes que deixam os inimigos lentos, capelas que curam, fogueiras que dão +30% de dano, chuva no sertão e lua de sangue a partir dos 12:00
