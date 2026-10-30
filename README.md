@@ -12,13 +12,18 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 
 ## Conteúdo
 - Mapa grande (4800 x 3200) com vilarejo assombrado, potes, cercas e carroças quebráveis, espinhos, areia movediça, altares e redemoinhos
-- Habilidade ativa por personagem (Laço, Mergulho e Forró), no botão ou na barra de espaço
+- Habilidade ativa por personagem (Laço, Mergulho, Forró e Benzer), no botão ou na barra de espaço
 - Evolução com dois caminhos: Área ou Força
 - Cenas de abertura e de amanhecer
 - Cruzes que puxam todos os cajus do mapa, galinha de ouro, visagem trapalhona e Roleta do Coronel
 - Poderes no chão: chapéu de cangaceiro, sanfona dourada, rapadura gigante e garrafa de mel
 - Bichinhos na loja: Gato Preto, Preá e Carcará
 - Forma final ao evoluir as 6 armas
+- Inimigos Caipora no porco-do-mato, Mãe-d'Água, Cabra-cabriola e muriçocas na chuva
+- Armas Zabumba e Candeeiro; itens Chinelo, Terço, Pé de Coelho, Cuia de Água e Sandália de Couro
+- Rio com pontes, poço dos desejos, estrelas cadentes, chuva de cajus e moradores para proteger no vilarejo
+- Benzedeira (4ª personagem), níveis de personagem, armas douradas com 5.000 abates, golpes críticos
+- Modo Infinito, dança da vitória e dicas no menu
 - 3 personagens: Vaqueiro, Pescador e Forrozeira (liberados por conquista ou rapadura)
 - 11 armas com evolução: Chapéu de Couro, Peixeira, Baladeira, Sanfona, Fogueira de São João, Rojão, Tarrafa, Berimbau, Cordel Mágico, Aboio e Galo de Briga
 - 11 itens passivos, incluindo Cachaça de Alambique, Ferradura, Lampião a Gás e Fitinha do Bonfim (salva da morte uma vez)
