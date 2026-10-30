@@ -12,14 +12,15 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 
 ## Conteúdo
 - 3 personagens: Vaqueiro, Pescador e Forrozeira (liberados por conquista ou rapadura)
-- 8 armas com evolução: Chapéu de Couro, Peixeira, Baladeira, Sanfona, Fogueira de São João, Rojão, Tarrafa e Berimbau
-- 9 itens passivos, incluindo Cachaça de Alambique (mais dano, anda torto) e Ferradura (sorte)
+- 11 armas com evolução: Chapéu de Couro, Peixeira, Baladeira, Sanfona, Fogueira de São João, Rojão, Tarrafa, Berimbau, Cordel Mágico, Aboio e Galo de Briga
+- 11 itens passivos, incluindo Cachaça de Alambique, Ferradura, Lampião a Gás e Fitinha do Bonfim (salva da morte uma vez)
+- Visuais alternativos dos personagens liberados por conquista
 - Inimigos: morcego, vagalume, Saci, Mula sem cabeça, Curupira (pegadas que invertem o controle) e revoadas de urubus
 - Inimigos de elite que soltam o Baú do Coronel (roleta que sobe de 1 a 3 armas)
 - Chefões: Lobisomem (5:00), Corpo-Seco (10:00), Cuca (12:00, poções que deixam lento) e Boitatá (14:00)
-- Eventos: capelas que curam, fogueiras que dão +30% de dano, chuva no sertão e lua de sangue a partir dos 12:00
+- Eventos: carro de boi que atropela inimigos e dá carona, açudes que deixam os inimigos lentos, capelas que curam, fogueiras que dão +30% de dano, chuva no sertão e lua de sangue a partir dos 12:00
 - Comida espalhada pelo mapa (tapioca, cuscuz, baião de dois)
-- Minimapa, dano por arma na tela final, dificuldade adaptativa, loja, conquistas e recordes salvos no aparelho
+- Minimapa, pausa com os números de cada arma, dano por arma na tela final, dificuldade adaptativa, loja, conquistas e recordes salvos no aparelho
 - Instalável no celular (PWA) e funciona offline
 
 ## Publicar
