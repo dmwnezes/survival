@@ -165,6 +165,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
     <div id="charlist" class="row"></div>
     <div class="row" style="align-items:center;gap:22px;margin-top:6px">
       <button class="btn ghost small" data-go="menu">Voltar</button>
+      <button class="btn ghost small hidden" id="btn-nm">Modo Normal</button>
       <span class="rapbox"><img data-ico="rap" alt=""><span class="rapn">0</span></span>
     </div>
   </section>
@@ -442,6 +443,9 @@ const SYN = {
   pescaria:  { a: 'tarrafa', b: 'peixeira', name: 'Pescaria', desc: 'Peixeira dá +50% de dano em inimigos presos.' },
   forro:     { a: 'sanfona', b: 'berimbau', name: 'Roda de Forró', desc: 'Berimbau ricocheteia mais 2 vezes.' },
   vaquejada: { a: 'chapeu', b: 'aboio', name: 'Vaquejada', desc: 'Chapéu de Couro ganha +1 chapéu.' },
+  galofogo:  { a: 'galo', b: 'fogueira', name: 'Galo de Fogo', desc: 'Bicadas dos galos batem 40% mais forte e às vezes pegam fogo.' },
+  repente:   { a: 'folhetos', b: 'berimbau', name: 'Repente', desc: 'Berimbau ganha +1 raio e os folhetos batem 50% mais forte.' },
+  acude:     { a: 'tarrafa', b: null, name: 'Pesca no Açude', desc: 'Redes que caem no açude ficam 2x maiores e prendem 50% mais.' },
 };
 const ENAMES = { morcego: 'Morcego', vagalume: 'Vagalume', saci: 'Saci', mula: 'Mula sem cabeça', curupira: 'Curupira', urubu: 'Urubu', lobisomem: 'Lobisomem', corposeco: 'Corpo-Seco', cuca: 'Cuca', boitata: 'Boitatá' };
 const ACH = {
@@ -449,7 +453,8 @@ const ACH = {
   lobisomem: { name: 'Caçador de Lobisomem', desc: 'Derrote o Lobisomem.', reward: 'Libera a Forrozeira' },
   evolui:    { name: 'Evolução', desc: 'Evolua uma arma.', reward: '+30 rapaduras', rap: 30 },
   mil:       { name: 'Mil Visagens', desc: 'Derrote 1.000 inimigos numa noite.', reward: '+50 rapaduras', rap: 50 },
-  amanhecer: { name: 'Amanhecer', desc: 'Sobreviva os 15 minutos.', reward: '+100 rapaduras', rap: 100 },
+  amanhecer: { name: 'Amanhecer', desc: 'Sobreviva os 15 minutos.', reward: '+100 rapaduras e o Modo Pesadelo', rap: 100 },
+  pesadelo:  { name: 'Pesadelo Vencido', desc: 'Vença a noite no Modo Pesadelo.', reward: '+200 rapaduras', rap: 200 },
 };
 const SHOP = {
   vida:    { name: 'Vida', desc: '+10 de vida máxima por nível', max: 5, base: 20, ico: 'gibao' },
@@ -505,7 +510,7 @@ function wstat(id, l, ev) {
   s.dmg *= P.dmg * (G && G.buff > 0 ? 1.3 : 1); if (s.cd) s.cd = Math.max(0.15, s.cd * P.cd);
   s.area *= P.area; if (s.rad) s.rad *= P.area;
   if (s.n && id !== 'sanfona') s.n += P.amount;
-  if (G && G.syn) { if (id === 'berimbau' && G.syn.forro) s.b += 2; if (id === 'chapeu' && G.syn.vaquejada) s.n += 1; }
+  if (G && G.syn) { if (id === 'berimbau' && G.syn.forro) s.b += 2; if (id === 'chapeu' && G.syn.vaquejada) s.n += 1; if (id === 'berimbau' && G.syn.repente) s.n += 1; if (id === 'folhetos' && G.syn.repente) s.dmg *= 1.5; if (id === 'galo' && G.syn.galofogo) s.dmg *= 1.4; }
   return s;
 }
 function wupDesc(id, l) {
@@ -555,7 +560,7 @@ let grid = new Map(); const CELL = 24;
 
 function newRunState() {
   return { time: 0, kills: 0, rap: 0, adapt: 1, adaptT: 5, hpMult: 1, spawnAcc: 0, shake: 0, hurtFlash: 0, bossDone: {}, events: {}, pendingLv: 0, pendingChest: 0, revived: false, dawn: 0, boss: null,
-    dmg: {}, buff: 0, confuse: 0, slow: 0, blood: false, rain: 0, rainAt: [rand(150, 330), rand(480, 660)], eliteT: 120, foodT: 8, ride: 0, fita: false, syn: {}, byEnemy: {}, warn: null };
+    dmg: {}, buff: 0, confuse: 0, slow: 0, blood: false, rain: 0, rainAt: [rand(150, 330), rand(480, 660)], eliteT: 120, foodT: 8, ride: 0, fita: false, syn: {}, byEnemy: {}, warn: null, nm: !!(save.nightmare && save.ach.amanhecer) };
 }
 function newPlayer(ch) {
   return { char: ch, x: MAPW / 2, y: MAPH / 2, r: 5, hp: 0, maxHp: 0, inv: 0, xp: 0, level: 1, next: need(1), fx: 1, fy: 0, moving: false, t: 0,
@@ -610,7 +615,7 @@ function num(x, y, v, set) { if (nums.length > 90) nums.shift(); nums.push({ x: 
 /* ---------------- inimigos ---------------- */
 function spawnEnemy(type, x, y) {
   const d = EN[type];
-  const hm = (d.boss ? (0.75 + 0.35 * G.adapt) : d.seg ? 1 : G.hpMult * (0.85 + 0.15 * G.adapt)) * (G.blood && !d.seg ? 1.3 : 1);
+  const hm = (d.boss ? (0.75 + 0.35 * G.adapt) : d.seg ? 1 : G.hpMult * (0.85 + 0.15 * G.adapt)) * (G.blood && !d.seg ? 1.3 : 1) * (G.nm && !d.seg ? (d.boss ? 1.5 : 1.6) : 1);
   const e = { type, d, x, y, vx: 0, vy: 0, kx: 0, ky: 0, hp: d.hp * hm, r: d.r, spd: d.spd * (d.boss ? 1 : rand(0.88, 1.12)) * (G.blood ? 1.1 : 1), flash: 0, t: Math.random() * 9, cc: rand(1, 4), ch: 0, cdx: 0, cdy: 0, ang: 0, alive: true, root: 0, sc: d.scale || 1 };
   e.maxHp = e.hp; enemies.push(e); return e;
 }
@@ -689,7 +694,7 @@ function director(dt) {
     else if (hr < 0.4 || player.level < exp * 0.7) G.adapt = Math.max(0.65, G.adapt - 0.06);
   }
   G.hpMult = 1 + t / 200;
-  const ramp = Math.min(1, 0.4 + t / 100), cap = Math.min(340, 40 + t / 2.4), rate = Math.min(22, 1.5 + t / 30) * G.adapt * ramp; // começo mais leve
+  const ramp = Math.min(1, 0.4 + t / 100), cap = Math.min(340, 40 + t / 2.4), rate = Math.min(22, 1.5 + t / 30) * G.adapt * ramp * (G.nm ? 1.3 : 1); // começo mais leve
   G.spawnAcc = Math.min(5, G.spawnAcc + rate * dt);
   while (G.spawnAcc >= 1 && enemies.length < cap) { G.spawnAcc -= 1; const [x, y] = edgePos(); spawnEnemy(pickType(m), x, y); }
   const sw = Math.floor(t / 60);
@@ -714,7 +719,7 @@ function director(dt) {
   if (G.foodT <= 0) { G.foodT = rand(16, 26) / player.st.luck; spawnFood(); }
 }
 function updEnemies(dt) {
-  const px = player.x, py = player.y, dm = (1 + G.time / 600) * Math.min(1, 0.6 + G.time / 150);
+  const px = player.x, py = player.y, dm = (1 + G.time / 600) * Math.min(1, 0.6 + G.time / 150) * (G.nm ? 1.4 : 1);
   for (const e of enemies) {
     if (!e.alive) continue;
     e.t += dt; e.flash -= dt;
@@ -875,7 +880,7 @@ function updGalos(w, s, dt) {
     if (!g.t || !g.t.alive || dist2(g.t.x, g.t.y, player.x, player.y) > 190 * 190) g.t = nearest(g.x, g.y, 150);
     const tx = g.t ? g.t.x : player.x + 10, ty = g.t ? g.t.y : player.y + 6, dx = tx - g.x, dy = ty - g.y, d = Math.hypot(dx, dy) || 1, sp = g.t ? s.spd : Math.min(s.spd, d * 3);
     g.vx = dx / d * sp; g.vy = dy / d * sp;
-    if (g.t && d < g.t.r + 5) { g.vx = g.vy = 0; if (g.cd <= 0) { g.cd = s.tick; g.peck = 0.12; hurt(g.t, s.dmg, dx / d * 20, dy / d * 20, 'galo'); } }
+    if (g.t && d < g.t.r + 5) { g.vx = g.vy = 0; if (g.cd <= 0) { g.cd = s.tick; g.peck = 0.12; hurt(g.t, s.dmg, dx / d * 20, dy / d * 20, 'galo'); if (G.syn.galofogo && Math.random() < 0.25) pools.push({ x: g.t.x, y: g.t.y, r: 9, life: G.rain > 0 ? 0.5 : 1.3, max: 1.3, dmg: s.dmg * 0.3, tk: 0 }); } }
     g.x += g.vx * dt; g.y += g.vy * dt;
   }
 }
@@ -974,6 +979,7 @@ function updProjs(dt) {
       p.t += dt; const q = Math.min(1, p.t / p.T);
       p.x = p.sx + (p.tx - p.sx) * q; p.y = p.sy + (p.ty - p.sy) * q - Math.sin(Math.PI * q) * 14;
       if (q >= 1) {
+        const wet = G.syn.acude && inWater(p.tx, p.ty); if (wet) { p.rad *= 2; p.root *= 1.5; }
         query(p.tx, p.ty, p.rad + 16, Q);
         for (const e of Q) if (e.alive && dist2(p.tx, p.ty, e.x, e.y) < (p.rad + e.r) ** 2) { (e.parent || e).root = p.root; hurt(e, p.dmg, undefined, undefined, 'tarrafa'); }
         fx.push({ k: 'net', x: p.tx, y: p.ty, r: p.rad, life: p.root, max: p.root }); p.life = 0;
@@ -1299,7 +1305,7 @@ function updHUD() {
   $('#xpfill').style.width = (player.xp / player.next * 100).toFixed(1) + '%';
   setText('#lvl', 'Nv ' + player.level); setText('#timer', fmt(Math.min(G.time, RUN)));
   setText('#kills', G.kills + (G.kills === 1 ? ' abate' : ' abates')); setText('#hud-rap', String(G.rap));
-  const bf = []; if (G.buff > 0) bf.push('Fogo ' + Math.ceil(G.buff) + 's'); if (G.ride > 0) bf.push('Carona ' + Math.ceil(G.ride) + 's'); if (G.confuse > 0) bf.push('Confuso'); if (G.slow > 0) bf.push('Lento');
+  const bf = G.nm ? ['Pesadelo'] : []; if (G.buff > 0) bf.push('Fogo ' + Math.ceil(G.buff) + 's'); if (G.ride > 0) bf.push('Carona ' + Math.ceil(G.ride) + 's'); if (G.confuse > 0) bf.push('Confuso'); if (G.slow > 0) bf.push('Lento');
   setText('#buffs', bf.join(' '));
   const b = G.boss && G.boss.alive ? G.boss : null; $('#bossbar').style.display = b ? 'block' : 'none';
   if (b) { setText('#bossname', b.bossName); $('#bossfill').style.width = Math.max(0, b.hp / b.maxHp * 100) + '%'; }
@@ -1338,6 +1344,9 @@ function renderMenu() {
   const d = loadRun(), bc = $('#btn-continue'); bc.classList.toggle('hidden', !d); if (d) bc.textContent = `Continuar a noite (${fmt(d.G.time)})`;
 }
 function renderChars() {
+  const nb = $('#btn-nm'), nmOk = !!save.ach.amanhecer; nb.classList.toggle('hidden', !nmOk);
+  nb.textContent = save.nightmare && nmOk ? 'Modo Pesadelo: inimigos mais fortes, rapadura em dobro' : 'Modo Normal';
+  nb.style.color = save.nightmare && nmOk ? 'var(--red)' : '';
   const box = $('#charlist'); box.innerHTML = '';
   for (const id in CHARS) {
     const c = CHARS[id], ok = !!save.chars[id], el = document.createElement('div');
@@ -1380,7 +1389,7 @@ function renderAch() {
 /* ---------------- subir de nível ---------------- */
 function hasW(id) { return player.weapons.some(w => w.id === id); }
 function refreshSyn(silent) {
-  for (const k in SYN) { const on = hasW(SYN[k].a) && hasW(SYN[k].b); if (on && !G.syn[k] && !silent) { toast('Sinergia: ' + SYN[k].name + '!'); sfx('win'); } G.syn[k] = on; }
+  for (const k in SYN) { const on = hasW(SYN[k].a) && (!SYN[k].b || hasW(SYN[k].b)); if (on && !G.syn[k] && !silent) { toast('Sinergia: ' + SYN[k].name + '!'); sfx('win'); } G.syn[k] = on; }
 }
 function rollOptions() {
   const p = player, pool = [];
@@ -1402,7 +1411,7 @@ function cardHTML(o) {
   let ico, name, tag, desc;
   if (o.k === 'wnew' || o.k === 'wup' || o.k === 'evo') {
     const W = WEAPONS[o.id], w = player.weapons.find(x => x.id === o.id); ico = icon(o.id);
-    if (o.k === 'wnew') { name = W.name; tag = 'Nova arma'; desc = W.desc; const sy = Object.values(SYN).find(x => (x.a === o.id && hasW(x.b)) || (x.b === o.id && hasW(x.a))); if (sy) desc += ' Sinergia: ' + sy.name + '.'; }
+    if (o.k === 'wnew') { name = W.name; tag = 'Nova arma'; desc = W.desc; const sy = Object.values(SYN).find(x => (x.a === o.id && (!x.b || hasW(x.b))) || (x.b === o.id && hasW(x.a))); if (sy) desc += ' Sinergia: ' + sy.name + '.'; }
     else if (o.k === 'wup') { name = W.name; tag = `Nível ${w.lvl + 1}`; desc = wupDesc(o.id, w.lvl); }
     else { name = W.evoName; tag = 'Evolução'; desc = W.evoDesc; }
   } else if (o.k === 'pnew' || o.k === 'pup') {
@@ -1528,7 +1537,7 @@ function pauseGame() {
 function resumeGame() { if (mode !== 'pause') return; hideScreens(); mode = 'play'; last = performance.now(); audioInit(); }
 function endRun(win) {
   if (mode === 'over' || !G) return; mode = 'over'; joy = null;
-  const t = Math.min(G.time, RUN), earned = Math.floor(G.kills / 40) + Math.floor(t / 60) * 2 + G.rap;
+  const t = Math.min(G.time, RUN), earned = (Math.floor(G.kills / 40) + Math.floor(t / 60) * 2 + G.rap) * (G.nm ? 2 : 1);
   save.rap += earned; const b = save.best;
   b.time = Math.max(b.time, t); b.kills = Math.max(b.kills, G.kills); b.level = Math.max(b.level, player.level);
   const st = save.stats; st.runs++; if (win) st.wins++; st.time += t; st.kills += G.kills;
@@ -1536,9 +1545,10 @@ function endRun(win) {
   for (const k in G.dmg) st.weapons[k] = (st.weapons[k] || 0) + G.dmg[k];
   clearRun();
   if (win) unlockAch('amanhecer');
+  if (win && G.nm) unlockAch('pesadelo');
   persist();
   $('#over-title').textContent = win ? 'O sol nasceu!' : 'A visagem te pegou';
-  $('#over-sub').textContent = win ? 'Você atravessou a noite inteira.' : 'Ainda faltavam ' + fmt(RUN - t) + ' para o amanhecer.';
+  $('#over-sub').textContent = win ? (G.nm ? 'Você atravessou o pesadelo inteiro.' : 'Você atravessou a noite inteira.') : 'Ainda faltavam ' + fmt(RUN - t) + ' para o amanhecer.';
   $('#over-stats').innerHTML = `<span>Tempo</span><span>${fmt(t)}</span><span>Nível</span><span>${player.level}</span><span>Abates</span><span>${G.kills}</span><span>Rapaduras ganhas</span><span>${earned}</span>`;
   const dm = Object.entries(G.dmg).sort((a, b) => b[1] - a[1]), mx = dm.length ? dm[0][1] : 1;
   const fmtN = v => v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + ' mil' : String(Math.round(v));
@@ -1551,6 +1561,7 @@ function endRun(win) {
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { audioInit(); goto(b.dataset.go); }));
 $('#btn-sound').onclick = () => { audioInit(); save.sound = !save.sound; persist(); renderMenu(); sfx('ui'); };
 $('#pausebtn').onclick = () => { pauseGame(); saveRun(); };
+$('#btn-nm').onclick = () => { save.nightmare = !save.nightmare; persist(); sfx('ui'); renderChars(); };
 $('#btn-chest').onclick = () => { if (mode !== 'chest') return; sfx('ui'); hideScreens(); mode = 'play'; last = performance.now(); };
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 let installEvt = null;
