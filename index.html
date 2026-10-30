@@ -484,8 +484,8 @@ const FOODS = [['tapioca', 20], ['cuscuz', 35], ['baiao', 50]], FOODK = new Set(
 const WMAX = 8, SLOTS = 6;
 const CHARS = {
   vaqueiro:   { name: 'Vaqueiro', weapon: 'chapeu', bonus: '+20 de vida máxima', hp: 20, price: 0, ab: 'laco', abName: 'Laço', abDesc: 'Puxa os inimigos próximos e prende por 1s.', abCd: 10 },
-  pescador:   { name: 'Pescador', weapon: 'peixeira', bonus: '+15% de velocidade', spd: 1.15, price: 150, unlockTxt: 'Sobreviva 5 minutos', ab: 'pulo', abName: 'Pulo', abDesc: 'Salta para a frente sem tomar dano.', abCd: 6 },
-  forrozeira: { name: 'Forrozeira', weapon: 'sanfona', bonus: '+10% de área', area: 1.1, price: 300, unlockTxt: 'Derrote o Lobisomem', ab: 'forro', abName: 'Forró', abDesc: 'Atordoa todos em volta por 1,5s.', abCd: 12 },
+  pescador:   { name: 'Pescador', weapon: 'peixeira', bonus: '+15% de velocidade e +20 de vida', spd: 1.15, hp: 20, price: 150, unlockTxt: 'Sobreviva 5 minutos', ab: 'mergulho', abName: 'Mergulho', abDesc: 'Some por 1,5s sem tomar dano, os inimigos perdem o rastro e ele volta espirrando água.', abCd: 7 },
+  forrozeira: { name: 'Forrozeira', weapon: 'sanfona', bonus: '+10% de área', area: 1.1, price: 300, unlockTxt: 'Derrote o Lobisomem', ab: 'forro', abName: 'Forró', abDesc: 'Atordoa todos em volta por 1,2s.', abCd: 14 },
 };
 const SKINS = {
   vaqueiro:   { name: 'Gibão Dourado', ach: 'amanhecer', pal: { b: '#d9a93a', B: '#9c7420' } },
@@ -534,8 +534,8 @@ const SHOP = {
 const EN = {
   morcego:    { hp: 6, spd: 36, dmg: 5, xp: 1, r: 4, spr: 'morcego', col: '#8160a8' },
   vagalume:   { hp: 4, spd: 52, dmg: 4, xp: 1, r: 3, spr: 'vagalume', col: '#fff6a0' },
-  saci:       { hp: 18, spd: 30, dmg: 8, xp: 2, r: 5, spr: 'saci', col: '#c8463c' },
-  mula:       { hp: 34, spd: 24, dmg: 12, xp: 3, r: 7, spr: 'mula', col: '#e8832a' },
+  saci:       { hp: 18, spd: 30, dmg: 6, xp: 2, r: 5, spr: 'saci', col: '#c8463c' },
+  mula:       { hp: 34, spd: 24, dmg: 9, xp: 3, r: 7, spr: 'mula', col: '#e8832a' },
   curupira:   { hp: 26, spd: 34, dmg: 9, xp: 2, r: 5, spr: 'curupira', col: '#e8832a' },
   trapalhona: { hp: 20, spd: 34, dmg: 4, xp: 2, r: 5, spr: 'trapalhona', col: '#e8e4ff' },
   alma:       { hp: 30, spd: 40, dmg: 10, xp: 3, r: 5, spr: 'alma', col: '#cfe0ff' },
@@ -543,7 +543,7 @@ const EN = {
   cerca:      { hp: 20, spd: 0, dmg: 0, xp: 0, r: 6, spr: 'cerca', prop: 1, col: '#8a5a2b' },
   carroca:    { hp: 45, spd: 0, dmg: 0, xp: 0, r: 8, spr: 'carroca', prop: 1, col: '#8a5a2b' },
   urubu:      { hp: 10, spd: 120, dmg: 8, xp: 1, r: 4, spr: 'urubu', fly: 1, col: '#2a2433' },
-  lobisomem:  { hp: 2000, spd: 44, dmg: 20, xp: 5, r: 13, spr: 'lobisomem', boss: 1, scale: 1.7, col: '#a4a4ba' },
+  lobisomem:  { hp: 1600, spd: 40, dmg: 12, xp: 5, r: 13, spr: 'lobisomem', boss: 1, scale: 1.7, col: '#a4a4ba' },
   corposeco:  { hp: 5000, spd: 30, dmg: 24, xp: 5, r: 13, spr: 'corposeco', boss: 1, scale: 1.8, col: '#ad9c7e' },
   cuca:       { hp: 7000, spd: 32, dmg: 24, xp: 5, r: 13, spr: 'cuca', boss: 1, scale: 1.8, col: '#5f9e4a' },
   boitata:    { hp: 9000, spd: 58, dmg: 26, xp: 5, r: 8, boss: 1, snake: 1, col: '#5fd4ff' },
@@ -556,23 +556,23 @@ const BOSSES = [
   { t: 840, type: 'boitata', name: 'O Boitatá' },
 ];
 
-function need(l) { return 6 + l * 5 + Math.floor(l * l * 0.08); }
+function need(l) { return 5 + Math.round(l * 3.5 + l * l * 0.05); }
 
 /* status base das armas por nível */
 function wbase(id, l, ev) {
   let s;
   switch (id) {
     case 'chapeu':    s = { dmg: 12 + 4 * (l - 1), cd: 1.7 - 0.08 * l, n: 1 + (l >= 4) + (l >= 7), r: 70 + 3 * l, T: 1.1, area: 1 }; if (ev) { s.n += 2; s.dmg *= 1.5; s.r *= 1.3; } break;
-    case 'peixeira':  s = { dmg: 11 + 4 * (l - 1), cd: 1.05 - 0.04 * l, n: 1 + (l >= 3) + (l >= 7), area: 1 + 0.06 * (l - 1) }; if (ev) { s.n = 4; s.dmg *= 1.8; s.area *= 1.25; } break;
-    case 'baladeira': s = { dmg: 8 + 3 * (l - 1), cd: 0.95 - 0.04 * l, n: 1 + Math.floor(l / 3), pierce: 1 + (l >= 5), spd: 190, area: 1 }; if (ev) { s.n += 3; s.pierce = 4; s.dmg *= 1.4; } break;
-    case 'sanfona':   s = { dmg: 5 + 2 * (l - 1), tick: 0.45, rad: 22 + 3 * l, area: 1 }; if (ev) { s.rad *= 1.35; s.dmg *= 1.6; } break;
+    case 'peixeira':  s = { dmg: 10 + 3.4 * (l - 1), cd: 0.9 - 0.035 * l, n: 2 + (l >= 4) + (l >= 7), area: 1 + 0.06 * (l - 1) }; if (ev) { s.n = 4; s.dmg *= 1.7; s.area *= 1.3; } break;
+    case 'baladeira': s = { dmg: 10 + 3.2 * (l - 1), cd: 0.95 - 0.04 * l, n: 1 + Math.floor(l / 3), pierce: 1 + (l >= 5), spd: 190, area: 1 }; if (ev) { s.n += 3; s.pierce = 4; s.dmg *= 1.4; } break;
+    case 'sanfona':   s = { dmg: 8 + 3.6 * (l - 1), tick: 0.45, rad: 26 + 3.5 * l, area: 1 }; if (ev) { s.rad *= 1.3; s.dmg *= 1.2; } break;
     case 'fogueira':  s = { dmg: 4 + 1.6 * (l - 1), cd: 3 - 0.15 * l, n: 1 + Math.floor(l / 3), rad: 13 + l, dur: 3, area: 1 }; if (ev) { s.rad *= 1.6; s.dur = 4.5; s.n += 2; } break;
-    case 'rojao':     s = { dmg: 20 + 6 * (l - 1), cd: 2.6 - 0.1 * l, n: 1 + Math.floor(l / 4), rad: 26 + 1.5 * l, area: 1 }; if (ev) { s.n += 3; s.rad *= 1.3; } break;
-    case 'folhetos':  s = { dmg: 7 + 2.5 * (l - 1), n: 2 + Math.floor(l / 3), rad: 30 + 1.5 * l, spin: 2.6 + 0.1 * l, area: 1 }; if (ev) { s.n += 2; s.dmg *= 1.5; s.spin *= 1.4; } break;
-    case 'aboio':     s = { dmg: 10 + 4 * (l - 1), cd: 7.5 - 0.35 * l, rad: 55 + 4 * l, root: 0.6 + 0.05 * l, area: 1 }; if (ev) { s.rad *= 1.5; s.root += 1; s.dmg *= 2; } break;
-    case 'galo':      s = { dmg: 6 + 2.5 * (l - 1), n: 1 + Math.floor(l / 4), spd: 105 + 3 * l, tick: 0.4, area: 1 }; if (ev) { s.n += 2; s.dmg *= 1.6; s.spd *= 1.25; } break;
-    case 'tarrafa':   s = { dmg: 6 + 2 * (l - 1), cd: 3.2 - 0.12 * l, n: 1 + Math.floor(l / 4), rad: 22 + 1.5 * l, root: 1.4 + 0.08 * l, area: 1 }; if (ev) { s.rad *= 1.5; s.root += 1.2; s.n += 1; } break;
-    case 'berimbau':  s = { dmg: 9 + 3 * (l - 1), cd: 1.3 - 0.05 * l, n: 1 + Math.floor(l / 5), b: 2 + Math.floor(l / 2), area: 1 }; if (ev) { s.b += 4; s.dmg *= 1.4; } break;
+    case 'rojao':     s = { dmg: 16 + 3.6 * (l - 1), cd: 2.6 - 0.1 * l, n: 1 + Math.floor(l / 5), rad: 26 + 1.5 * l, area: 1 }; if (ev) { s.n += 1; s.rad *= 1.25; s.dmg *= 1.15; } break;
+    case 'folhetos':  s = { dmg: 10 + 3.6 * (l - 1), n: 2 + Math.floor(l / 3), rad: 34 + 2 * l, spin: 2.6 + 0.1 * l, area: 1 }; if (ev) { s.n += 2; s.dmg *= 1.8; s.spin *= 1.3; s.rad *= 1.25; } break;
+    case 'aboio':     s = { dmg: 13 + 5.5 * (l - 1), cd: 6.2 - 0.3 * l, rad: 55 + 4 * l, root: 0.6 + 0.05 * l, area: 1 }; if (ev) { s.rad *= 1.35; s.root += 0.8; s.dmg *= 1.4; } break;
+    case 'galo':      s = { dmg: 10 + 4 * (l - 1), n: 1 + Math.floor(l / 4), spd: 105 + 3 * l, tick: 0.4, area: 1 }; if (ev) { s.n += 1; s.dmg *= 1.4; s.spd *= 1.25; } break;
+    case 'tarrafa':   s = { dmg: 9 + 3.2 * (l - 1), cd: 3.2 - 0.12 * l, n: 1 + Math.floor(l / 4), rad: 22 + 1.5 * l, root: 1.4 + 0.08 * l, area: 1 }; if (ev) { s.rad *= 1.5; s.root += 1.2; s.n += 1; } break;
+    case 'berimbau':  s = { dmg: 7.5 + 2.3 * (l - 1), cd: 1.3 - 0.05 * l, n: 1 + Math.floor(l / 5), b: 2 + Math.floor(l / 3), area: 1 }; if (ev) { s.b += 4; s.dmg *= 1.25; } break;
   }
   return s;
 }
@@ -582,6 +582,7 @@ function wstat(id, l, ev) {
   s.area *= P.area; if (s.rad) s.rad *= P.area;
   if (s.n && id !== 'sanfona') s.n += P.amount;
   if (G && G.syn) { if (id === 'berimbau' && G.syn.forro) s.b += 2; if (id === 'chapeu' && G.syn.vaquejada) s.n += 1; if (id === 'berimbau' && G.syn.repente) s.n += 1; if (id === 'folhetos' && G.syn.repente) s.dmg *= 1.5; if (id === 'galo' && G.syn.galofogo) s.dmg *= 1.4; }
+  if (ev === 'a' && id === 'peixeira') { s.area *= 1.15; s.dmg *= 1.3; } // as 4 direções já estão no máximo
   if (ev === 'a') { s.area *= 1.3; if (s.rad) s.rad *= 1.3; if (s.r) s.r *= 1.3; if (s.n && id !== 'sanfona') s.n += 1; if (s.b) s.b += 2; s.dmg *= 0.9; }
   else if (ev === 'f') s.dmg *= 1.45;
   return s;
@@ -653,7 +654,7 @@ function recalc() {
     cd: Math.pow(0.92, pv.cordel || 0) * (1 - 0.03 * (up.recarga || 0)),
     spd: (1 + 0.1 * (pv.cafe || 0)) * (1 + 0.05 * (up.pressa || 0)) * (ch.spd || 1),
     amount: pv.zabumba || 0,
-    magnet: 30 * (1 + 0.3 * (pv.bornal || 0)) * (1 + 0.1 * (up.ima || 0)),
+    magnet: 42 * (1 + 0.3 * (pv.bornal || 0)) * (1 + 0.1 * (up.ima || 0)),
   };
   const mx = 100 + (ch.hp || 0) + 20 * (pv.gibao || 0) + 10 * (up.vida || 0);
   if (p.maxHp) p.hp += Math.max(0, mx - p.maxHp);
@@ -792,7 +793,7 @@ function spawnCart() {
   banner('Lá vem o carro de boi!');
 }
 function pickType(m) {
-  const w = [['morcego', Math.max(2, 10 - m)], ['vagalume', m > 0.5 ? 4 : 0], ['saci', m >= 2 ? 2 + m * 0.5 : 0], ['mula', m >= 4 ? 1 + m * 0.35 : 0], ['curupira', m >= 3 ? 1 + m * 0.12 : 0], ['trapalhona', m >= 1.5 ? 1.2 : 0]];
+  const w = [['morcego', Math.max(2, 10 - m)], ['vagalume', m > 0.5 ? 4 : 0], ['saci', m >= 2 ? 2 + m * 0.5 : 0], ['mula', m >= 4 ? 0.5 + (m - 4) * 0.4 : 0], ['curupira', m >= 3 ? 1 + m * 0.12 : 0], ['trapalhona', m >= 1.5 ? 1.2 : 0]];
   let tot = 0; for (const x of w) tot += x[1]; let r = Math.random() * tot;
   for (const x of w) { r -= x[1]; if (r <= 0) return x[0]; } return 'morcego';
 }
@@ -810,12 +811,12 @@ function director(dt) {
   const t = G.time, m = t / 60;
   G.adaptT -= dt;
   if (G.adaptT <= 0) {
-    G.adaptT = 5; const exp = 2 + t / 22, hr = player.hp / player.maxHp;
-    if (hr > 0.75 && player.level >= exp) G.adapt = Math.min(1.6, G.adapt + 0.04);
-    else if (hr < 0.4 || player.level < exp * 0.7) G.adapt = Math.max(0.65, G.adapt - 0.06);
+    G.adaptT = 5; const hr = player.hp / player.maxHp; // só a vida decide: travar pelo nível deixava o jogador sem XP
+    if (hr > 0.8) G.adapt = Math.min(1.4, G.adapt + 0.03);
+    else if (hr < 0.45) G.adapt = Math.max(0.65, G.adapt - 0.12);
   }
   G.hpMult = 1 + t / 200;
-  const ramp = Math.min(1, 0.4 + t / 100), cap = Math.min(340, 40 + t / 2.4), rate = Math.min(22, 1.5 + t / 30) * G.adapt * ramp * (G.nm ? 1.3 : 1); // começo mais leve
+  const ramp = Math.min(1, 0.65 + t / 120), cap = Math.min(340, 40 + t / 2.4), rate = Math.min(22, 1.5 + t / 30) * G.adapt * ramp * (G.nm ? 1.3 : 1); // começo mais leve
   G.spawnAcc = Math.min(5, G.spawnAcc + rate * dt);
   while (G.spawnAcc >= 1 && enemies.length - G.nProps < cap) { G.spawnAcc -= 1; const [x, y] = edgePos(); spawnEnemy(pickType(m), x, y); }
   const sw = Math.floor(t / 60);
@@ -857,16 +858,20 @@ function updEnemies(dt) {
       switch (e.type) {
         case 'morcego': vx += Math.cos(e.t * 6) * 12; vy += Math.sin(e.t * 5) * 12; break;
         case 'saci':
+          if (e.wind > 0) { e.wind -= dt; vx = vy = 0; break; }
           e.cc -= dt;
-          if (e.cc <= 0) { e.cc = rand(3, 5); if (d > 45) { puff(e.x, e.y, '#c8463c'); const a = Math.random() * 6.283, r = rand(80, 100); e.x = clamp(px + Math.cos(a) * r, 4, MAPW - 4); e.y = clamp(py + Math.sin(a) * r, 4, MAPH - 4); puff(e.x, e.y, '#c8463c'); sfx('tp'); } }
+          if (e.cc <= 0) { e.cc = rand(4, 6); if (d > 45) { puff(e.x, e.y, '#c8463c'); const a = Math.random() * 6.283, r = rand(80, 100); e.x = clamp(px + Math.cos(a) * r, 4, MAPW - 4); e.y = clamp(py + Math.sin(a) * r, 4, MAPH - 4); puff(e.x, e.y, '#c8463c'); sfx('tp'); e.wind = 0.4; } }
           break;
         case 'mula':
-          if (e.ch > 0) { e.ch -= dt; vx = e.cdx * 130; vy = e.cdy * 130; if (Math.random() < 0.4) part(e.x + e.cdx * 7, e.y - 3, rand(-10, 10), rand(-20, -5), 0.3, '#e8832a', 1, true); }
-          else { e.cc -= dt; if (e.cc <= 0 && d < 170) { e.ch = 1; e.cdx = dx / d; e.cdy = dy / d; e.cc = rand(3.5, 5); } }
+          // aviso de 0,55s (para, pisca e levanta poeira) antes de disparar
+          if (e.wind > 0) { e.wind -= dt; vx = vy = 0; if (Math.random() < 0.5) part(e.x, e.y + 5, rand(-12, 12), rand(-8, -2), 0.3, '#b8a27a', 1); if (e.wind <= 0) { e.ch = 1; e.cdx = dx / d; e.cdy = dy / d; } }
+          else if (e.ch > 0) { e.ch -= dt; vx = e.cdx * 115; vy = e.cdy * 115; if (Math.random() < 0.4) part(e.x + e.cdx * 7, e.y - 3, rand(-10, 10), rand(-20, -5), 0.3, '#e8832a', 1, true); }
+          else { e.cc -= dt; if (e.cc <= 0 && d < 160 && d > 50) { e.wind = 0.55; e.cc = rand(3.5, 5); } }
           break;
         case 'lobisomem':
-          if (e.ch > 0) { e.ch -= dt; vx = e.cdx * 190; vy = e.cdy * 190; }
-          else { e.cc -= dt; if (e.cc <= 0) { e.ch = 0.55; e.cdx = dx / d; e.cdy = dy / d; e.cc = 4.5; G.shake = Math.max(G.shake, 2); } }
+          if (e.wind > 0) { e.wind -= dt; vx = vy = 0; if (e.wind <= 0) { e.ch = 0.6; e.cdx = dx / d; e.cdy = dy / d; G.shake = Math.max(G.shake, 2); } }
+          else if (e.ch > 0) { e.ch -= dt; vx = e.cdx * 165; vy = e.cdy * 165; }
+          else { e.cc -= dt; if (e.cc <= 0) { e.wind = 0.6; e.cc = 4.5; } }
           break;
         case 'corposeco':
           e.cc -= dt;
@@ -993,7 +998,7 @@ function updWeapons(dt) {
         for (const e of Q) { if (!e.alive) continue; const dx = e.x - player.x, dy = e.y - player.y, d = Math.hypot(dx, dy) || 1; if (d < R + e.r) hurt(e, s.dmg, dx / d * 22, dy / d * 22, 'sanfona'); }
         if (Math.random() < 0.8) { const a = Math.random() * 6.283; part(player.x + Math.cos(a) * R * 0.7, player.y + Math.sin(a) * R * 0.7, 0, -18, 0.7, '#9fd0ff', 2, true); }
       }
-      if (w.ev) { w.wv = (w.wv || 0) - dt; if (w.wv <= 0) { w.wv = 1.6; waves.push({ x: player.x, y: player.y, r: R, max: R + 90, dmg: s.dmg * 2, hit: new Set() }); } }
+      if (w.ev) { w.wv = (w.wv || 0) - dt; if (w.wv <= 0) { w.wv = 2; waves.push({ x: player.x, y: player.y, r: R, max: R + 90, dmg: s.dmg, hit: new Set() }); } }
       continue;
     }
     if (w.id === 'folhetos') { updFolhetos(w, s); continue; }
@@ -1012,13 +1017,12 @@ function useAbility() {
       fx.push({ k: 'laco', x: e.x, y: e.y, life: 0.25, max: 0.25 }); hurt(e, 15 * D);
     }
     sfx('swing');
-  } else if (c.ab === 'pulo') {
-    const tx = clamp(px + player.fx * 75, 8, MAPW - 8), ty = clamp(py + player.fy * 75, 8, MAPH - 8);
-    burst(px, py, '#c9c9d6', 10); player.x = tx; player.y = ty; player.inv = Math.max(player.inv, 0.6);
-    query(tx, ty, 46, Q); for (const e of Q) if (e.alive && dist2(e.x, e.y, tx, ty) < (30 + e.r) ** 2) hurt(e, 25 * D, (e.x - tx) * 3, (e.y - ty) * 3);
-    fx.push({ k: 'boom', x: tx, y: ty, r: 30, life: 0.3, max: 0.3 }); sfx('boom');
+  } else if (c.ab === 'mergulho') {
+    player.inv = Math.max(player.inv, 1.5); G.dive = 1.5;
+    query(px, py, 130, Q); for (const e of Q) if (e.alive && !e.d.prop && dist2(e.x, e.y, px, py) < 120 * 120) { const t = e.parent || e; t.root = Math.max(t.root, 1.2); }
+    burst(px, py, '#7fb2e5', 16); sfx('splash');
   } else {
-    query(px, py, 100, Q); for (const e of Q) if (e.alive && !e.d.prop && dist2(e.x, e.y, px, py) < 90 * 90) { const t = e.parent || e; t.root = Math.max(t.root, 1.5); hurt(e, 10 * D); }
+    query(px, py, 100, Q); for (const e of Q) if (e.alive && !e.d.prop && dist2(e.x, e.y, px, py) < 90 * 90) { const t = e.parent || e; t.root = Math.max(t.root, 1.2); hurt(e, 10 * D); }
     fx.push({ k: 'aboio', r: 90, life: 0.45, max: 0.45 }); sfx('lvl');
   }
 }
@@ -1041,7 +1045,7 @@ function updFolhetos(w, s) {
   for (let i = 0; i < s.n; i++) {
     const a = (w.ang || 0) + i * 6.283 / s.n, x = player.x + Math.cos(a) * s.rad, y = player.y + Math.sin(a) * s.rad;
     query(x, y, 22, Q);
-    for (const e of Q) if (e.alive && dist2(x, y, e.x, e.y) < (e.r + 5 * s.area) ** 2 && (w.hit.get(e) || -9) < G.time - 0.4) { w.hit.set(e, G.time); hurt(e, s.dmg, Math.cos(a) * 25, Math.sin(a) * 25, 'folhetos'); }
+    for (const e of Q) if (e.alive && dist2(x, y, e.x, e.y) < (e.r + 5 * s.area) ** 2 && (w.hit.get(e) || -9) < G.time - 0.3) { w.hit.set(e, G.time); hurt(e, s.dmg, Math.cos(a) * 25, Math.sin(a) * 25, 'folhetos'); }
   }
   if (w.hit.size > 600) w.hit.clear();
 }
@@ -1062,7 +1066,7 @@ function fire(w, s) {
   switch (w.id) {
     case 'peixeira': {
       const fx0 = player.fx, fy0 = player.fy, dirs = [[fx0, fy0], [-fx0, -fy0], [-fy0, fx0], [fy0, -fx0]];
-      const n = Math.min(4, s.n), reach = 34 * s.area, half = 11 * s.area;
+      const n = Math.min(4, s.n), reach = 45 * s.area, half = 13 * s.area;
       for (let i = 0; i < n; i++) {
         const [dx, dy] = dirs[i]; query(px, py, reach + 16, Q);
         for (const e of Q) { if (!e.alive) continue; const rx = e.x - px, ry = e.y - py, al = rx * dx + ry * dy, pe = Math.abs(-rx * dy + ry * dx); if (al > -6 && al < reach + e.r && pe < half + e.r) hurt(e, s.dmg * (G.syn.pescaria && (e.parent || e).root > 0 ? 1.5 : 1), dx * 45, dy * 45, 'peixeira'); }
@@ -1246,6 +1250,7 @@ function startDawn() {
 }
 function updWorld(dt) {
   G.buff -= dt; G.confuse -= dt; G.rain -= dt; G.ride -= dt; G.slow = 0; G.abCd -= dt; G.giant -= dt; G.finalT -= dt;
+  if (G.dive > 0) { G.dive -= dt; if (G.dive <= 0) { query(player.x, player.y, 76, Q); for (const e of Q) if (e.alive && dist2(e.x, e.y, player.x, player.y) < (60 + e.r) ** 2) hurt(e, 35 * player.st.dmg, (e.x - player.x) * 4, (e.y - player.y) * 4); fx.push({ k: 'boom', x: player.x, y: player.y, r: 60, life: 0.3, max: 0.3 }); burst(player.x, player.y, '#7fb2e5', 24); sfx('splash'); } }
   if (!G.finalUsed && player.weapons.length >= SLOTS && player.weapons.every(w => w.ev)) { G.finalUsed = true; G.finalT = 30; banner('FORMA FINAL!'); sfx('win'); G.shake = 6; }
   if (G.cang > 0) {
     G.cang -= dt; G.cangT -= dt;
@@ -1443,7 +1448,7 @@ function drawEnemies() {
     if (e.type === 'trapalhona' && e.ch > 0) { ctx.save(); ctx.translate(Math.round(e.x), Math.round(e.y + 2)); ctx.rotate(1.57); ctx.drawImage(e.flash > 0 ? s.w : s.n, -s.W / 2, -s.H / 2); ctx.restore(); continue; }
     let y = e.y - (e.dance > 0 ? Math.abs(Math.sin(e.t * 12)) * 3 : 0); if (e.type === 'saci') y -= Math.abs(Math.sin(e.t * 10)) * 2;
     shadow(e.x, e.y + s.H * sc / 2 - 1, s.W * sc * 0.6);
-    drawSpr(s, e.x, y, { sc, flip: (e.type === 'mula' && e.vx > 0) || ((e.type === 'curupira' || e.type === 'cuca') && e.vx < 0), white: e.flash > 0 });
+    drawSpr(s, e.x, y, { sc, flip: (e.type === 'mula' && e.vx > 0) || ((e.type === 'curupira' || e.type === 'cuca') && e.vx < 0), white: e.flash > 0 || (e.wind > 0 && Math.sin(e.t * 40) > 0) });
     if (e.root > 0) { ctx.strokeStyle = 'rgba(240,234,214,0.7)'; ctx.lineWidth = 1; ctx.strokeRect(Math.round(e.x - e.r) + 0.5, Math.round(y - e.r) + 0.5, Math.round(e.r * 2), Math.round(e.r * 2)); }
   }
   ctx.globalAlpha = 1;
@@ -1457,6 +1462,7 @@ function drawPlayer() {
   const s = S[player.spr], bob = player.moving && Math.sin(player.t * 14) > 0 ? 1 : 0;
   shadow(player.x, player.y + 6, 9);
   const psc = G.giant > 0 ? 1.5 : 1;
+  if (G.dive > 0) { ctx.strokeStyle = 'rgba(127,178,229,0.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(player.x, player.y + 4, 8 + Math.sin(G.time * 10) * 2, 4, 0, 0, 6.283); ctx.stroke(); return; }
   if (!(player.inv > 0 && Math.floor(player.t * 20) % 2)) drawSpr(s, player.x, player.y - bob - (psc - 1) * 7, { flip: player.fx < 0, sc: psc });
   if (G.cang > 0) drawSpr(S.cang, player.x, player.y - 9 * psc - bob);
   const w = 16, x = Math.round(player.x - w / 2), y = Math.round(player.y + 9);

@@ -12,7 +12,7 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 
 ## Conteúdo
 - Mapa grande (4800 x 3200) com vilarejo assombrado, potes, cercas e carroças quebráveis, espinhos, areia movediça, altares e redemoinhos
-- Habilidade ativa por personagem (Laço, Pulo e Forró), no botão ou na barra de espaço
+- Habilidade ativa por personagem (Laço, Mergulho e Forró), no botão ou na barra de espaço
 - Evolução com dois caminhos: Área ou Força
 - Cenas de abertura e de amanhecer
 - Cruzes que puxam todos os cajus do mapa, galinha de ouro, visagem trapalhona e Roleta do Coronel
