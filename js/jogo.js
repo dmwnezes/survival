@@ -11,7 +11,8 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => { keys.clear(); joy = null; });
 function toInternal(e) { return [e.clientX / innerWidth * VW, e.clientY / innerHeight * VH]; }
-cv.addEventListener('pointerdown', e => { if (mode !== 'play' || joy) return; const [x, y] = toInternal(e); joy = { id: e.pointerId, ox: x, oy: y, x, y }; });
+const JOYFIX = () => [46, VH - 50]; // joystick fixo: base no canto inferior esquerdo
+cv.addEventListener('pointerdown', e => { if (mode !== 'play' || joy) return; const [x, y] = toInternal(e); if (save.joyFix) { const [ox, oy] = JOYFIX(); joy = { id: e.pointerId, ox, oy, x, y }; } else joy = { id: e.pointerId, ox: x, oy: y, x, y }; });
 addEventListener('pointermove', e => { if (joy && e.pointerId === joy.id) { const [x, y] = toInternal(e); joy.x = x; joy.y = y; } });
 const endJoy = e => { if (joy && e.pointerId === joy.id) joy = null; };
 addEventListener('pointerup', endJoy); addEventListener('pointercancel', endJoy);
@@ -33,8 +34,8 @@ function update(dt) {
   if (player.st.drunk && (ix || iy)) { const a = (Math.sin(player.t * 2.3) * 0.22 + Math.sin(player.t * 5.1) * 0.08) * player.st.drunk, c = Math.cos(a), sn = Math.sin(a); [ix, iy] = [ix * c - iy * sn, ix * sn + iy * c]; }
   const l = Math.hypot(ix, iy);
   player.moving = l > 0.05; if (player.moving) { player.fx = ix / l; player.fy = iy / l; }
-  const sp = 62 * player.st.spd * (G.slow > 0 ? 0.5 : 1) * (G.rain > 0 ? 0.8 : 1) * (G.ride > 0 ? 1.5 : 1) * (G.sand ? 0.45 : 1) * (onRoad(player.x, player.y) ? 1.25 : 1) * (G.giant > 0 ? 1.3 : 1) * (G.altar && G.altar.k === 'pressa' ? 1.4 : 1);
-  const rsp = sp * (inRiver(player.x, player.y) ? 0.4 : 1);
+  const sp = 62 * player.st.spd * (G.slow > 0 ? 0.5 : 1) * (G.rain > 0 ? 0.8 : 1) * (G.ride > 0 ? 1.5 : 1) * (G.sand ? 0.45 : 1) * (onRoad(player.x, player.y) ? 1.25 : 1) * (G.giant > 0 ? 1.3 : 1) * (G.altar && G.altar.k === 'pressa' ? 1.4 : 1) * (1 + (G.esp || 0) / 100);
+  const rsp = sp * (inRiver(player.x, player.y) && player.char !== 'pescador' ? 0.4 : 1);
   if (player.st.slip) { const k = Math.min(1, 6 / (1 + player.st.slip * 0.6) * dt); player.vx += (ix * rsp - player.vx) * k; player.vy += (iy * rsp - player.vy) * k; } // chinelo escorrega
   else { player.vx = ix * rsp; player.vy = iy * rsp; }
   player.x = clamp(player.x + (player.vx + player.kx) * dt, 8, MAPW - 8); player.y = clamp(player.y + (player.vy + player.ky) * dt, 8, MAPH - 8);
@@ -51,7 +52,12 @@ function update(dt) {
   G.saveT = (G.saveT || 15) - dt; if (G.saveT <= 0) { G.saveT = 15; saveRun(); }
   if (G.time >= 300) unlockAch('noite5');
   if (G.kills >= 1000) unlockAch('mil');
-  if (G.time >= RUN && !G.dawn && !G.inf) startDawn();
+  if (G.time >= RUN && !G.dawn && !G.inf) {
+    if (G.nm && !G.secretDone) { // Pesadelo: o Anhangá guarda o amanhecer
+      if (!G.secret) { G.secret = 1; spawnBoss(SECRET_BOSS); banner('A noite ainda não acabou...'); }
+      else if (!(G.boss && G.boss.alive)) { G.secretDone = true; unlockAch('anhanga'); startDawn(); }
+    } else startDawn();
+  }
   if (G.dawn) { G.dawn += dt; if (G.dawn > 2.6 && mode === 'play') startCut('outro', () => endRun(true)); }
   if (G.pendingChest > 0 && mode === 'play' && !G.dawn) openChest();
   else if (G.pendingLv > 0 && mode === 'play' && !G.dawn) openLevel();
@@ -62,6 +68,7 @@ function startDawn() {
   G.boss = null;
 }
 function updWorld(dt) {
+  EXH.world(dt);
   G.buff -= dt; G.confuse -= dt; G.rain -= dt; G.ride -= dt; G.slow = 0; G.abCd -= dt; G.giant -= dt; G.finalT -= dt;
   const regen = CHARS[player.char].regen; if (regen && !G.dawn) player.hp = Math.min(player.maxHp, player.hp + regen * dt);
   if (player.pass.sandalia && player.moving) { G.trailT -= dt; if (G.trailT <= 0) { G.trailT = 0.2; trails.push({ x: player.x, y: player.y + 5, life: 1.5, tk: 0 }); } }
@@ -77,7 +84,7 @@ function updWorld(dt) {
   compact(roots, r => r.t < 2.6);
   for (const m of muds) m.life -= dt; compact(muds, m => m.life > 0);
   for (const fr of fires) {
-    fr.t += dt; fr.life -= G.rain > 0 ? dt * 6 : dt; fr.r = Math.min(120, 10 + fr.t * 8); fr.tk -= dt;
+    fr.t += dt; fr.life -= G.rain > 0 ? dt * 6 : dt; fr.r = Math.min(fr.max || 120, 10 + fr.t * 8); fr.tk -= dt;
     if (fr.tk <= 0) { fr.tk = 0.5; const rr = fr.r * 0.9; if (dist2(fr.x, fr.y, player.x, player.y) < rr * rr) playerHit(2.5); query(fr.x, fr.y, fr.r + 10, Q); for (const e of Q) if (e.alive && !e.d.boss && dist2(fr.x, fr.y, e.x, e.y) < rr * rr) hurt(e, 15); }
   }
   compact(fires, fr => fr.life > 0);

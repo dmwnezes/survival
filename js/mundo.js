@@ -30,6 +30,11 @@ function makeWorld() {
     if (Math.abs(dx - MAPW / 2) < 40 && Math.abs(dy - MAPH / 2) < 30) continue;
     decor.push({ k, x: dx, y: dy });
   }
+  for (let i = 0; i < 7000; i++) { // caatinga mais fechada perto das bordas do mapa
+    const side = (rr() * 4) | 0, depth = Math.pow(rr(), 1.8) * 650, along = rr();
+    const dx = side === 0 ? depth : side === 1 ? MAPW - depth : along * MAPW, dy = side === 2 ? depth : side === 3 ? MAPH - depth : along * MAPH, v = rr();
+    decor.push({ k: v < 0.22 ? 'mandacaru' : v < 0.48 ? 'xique' : v < 0.62 ? 'juazeiro' : v < 0.8 ? 'pedra' : 'capim', x: dx | 0, y: dy | 0 });
+  }
   decorGrid = new Map(); for (const d of decor) { const key = ((d.x / 256) | 0) * 1000 + ((d.y / 256) | 0); let a = decorGrid.get(key); if (!a) decorGrid.set(key, a = []); a.push(d); }
 }
 
@@ -48,7 +53,7 @@ let villages = [], roads = [], graves = [];
 function defV() { return villages.find(v => v.def > 0) || null; }
 function inVillage(x, y, m) { return villages.some(v => dist2(x, y, v.x, v.y) < (v.r + (m || 0)) ** 2); }
 function inGrave(x, y, m) { return graves.some(g => dist2(x, y, g.x, g.y) < (g.r + (m || 0)) ** 2); }
-function onRoad(x, y) { for (const r of roads) for (let i = 1; i < r.length; i++) { const a = r[i - 1], b = r[i], dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy, t = clamp(((x - a.x) * dx + (y - a.y) * dy) / L, 0, 1), px = a.x + dx * t - x, py = a.y + dy * t - y; if (px * px + py * py < 15 * 15) return true; } return false; }
+function onRoad(x, y) { return onRoad2(x, y); } // grade de trechos da estrada suavizada (extra.js)
 const Q = [];
 let grid = new Map(); const CELL = 24;
 
@@ -103,15 +108,16 @@ function separate() {
 }
 
 /* ---------------- partículas e números ---------------- */
-function part(x, y, vx, vy, life, c, size, glow) { if (parts.length > 520) return; parts.push({ x, y, vx, vy, life, max: life, c, size: size || 1, glow: !!glow }); }
+const partPool = []; // partículas reaproveitadas: menos lixo para o coletor no celular
+function part(x, y, vx, vy, life, c, size, glow) { if (parts.length > 520) return; const p = partPool.pop() || {}; p.x = x; p.y = y; p.vx = vx; p.vy = vy; p.life = life; p.max = life; p.c = c; p.size = size || 1; p.glow = !!glow; parts.push(p); }
 function burst(x, y, c, n, glow) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, s = rand(15, 60); part(x, y, Math.cos(a) * s, Math.sin(a) * s, rand(0.25, 0.6), c, Math.random() < 0.3 ? 2 : 1, glow); } }
 function puff(x, y, c) { burst(x, y, '#8f97c4', 6); burst(x, y, c, 4); }
-function num(x, y, v, set, crit) { if (nums.length > 90) nums.shift(); nums.push({ x: x + rand(-3, 3), y, v: Math.max(1, Math.round(v)), life: crit ? 0.8 : 0.6, set: set || DW, crit }); }
+function num(x, y, v, set, crit) { if (nums.length > 90) nums.shift(); const n = { x: x + rand(-3, 3), y, v: Math.max(1, Math.round(v)), life: crit ? 0.8 : 0.6, max: crit ? 0.8 : 0.6, set: set || DW, crit }; nums.push(n); return n; }
 
 /* ---------------- inimigos ---------------- */
 function spawnEnemy(type, x, y) {
   const d = EN[type];
-  const hm = (d.boss ? (0.75 + 0.35 * G.adapt) * (1 + Math.max(0, G.time - 480) / 500) : d.seg || d.prop ? 1 : G.hpMult * (0.85 + 0.15 * G.adapt)) * (G.blood && !d.seg ? 1.3 : 1) * (G.nm && !d.seg ? (d.boss ? 1.5 : 1.6) : 1);
+  const hm = (d.prop ? 1 : 1.8) * (d.boss ? (0.75 + 0.35 * G.adapt) * (1 + Math.max(0, G.time - 480) / 500) : d.seg || d.prop ? 1 : G.hpMult * (0.85 + 0.15 * G.adapt)) * (G.blood && !d.seg ? 1.3 : 1) * (G.nm && !d.seg ? (d.boss ? 1.5 : 1.6) : 1);
   const e = { type, d, x, y, vx: 0, vy: 0, kx: 0, ky: 0, hp: d.hp * hm, r: d.r, spd: d.spd * (d.boss ? 1 : rand(0.88, 1.12)) * (G.blood ? 1.1 : 1), flash: 0, t: Math.random() * 9, cc: rand(1, 4), ch: 0, cdx: 0, cdy: 0, ang: 0, alive: true, root: 0, sc: d.scale || 1 };
   e.maxHp = e.hp; enemies.push(e); return e;
 }
@@ -168,6 +174,7 @@ function makeSpots() {
   const way = (ax, ay, bx, by) => { const pts = [], n = Math.max(6, Math.round(Math.hypot(bx - ax, by - ay) / 500)); for (let i = 0; i <= n; i++) { const k = i / n; pts.push({ x: clamp(ax + (bx - ax) * k + (i && i < n ? rand(-160, 160) : 0), 10, MAPW - 10), y: clamp(ay + (by - ay) * k + (i && i < n ? rand(-160, 160) : 0), 10, MAPH - 10) }); } roads.push(pts); };
   way(0, rand(0.2, 0.8) * MAPH, MAPW, rand(0.2, 0.8) * MAPH); way(rand(0.2, 0.8) * MAPW, 0, rand(0.2, 0.8) * MAPW, MAPH);
   for (const v of villages) way(MAPW / 2, MAPH / 2, v.x, v.y);
+  buildRoads();
   const free = (x, y, m) => Math.hypot(x - MAPW / 2, y - MAPH / 2) > 160 && !inVillage(x, y, m) && !inGrave(x, y, m);
   place('capela', 20); place('fogo', 36); place('altar', 14); place('coronel', 8); place('cruz', 32); place('poco', 10); place('farinha', 8);
   for (let i = 0; i < 160; i++) { const k = i < 110 ? 'espinho' : 'areia', x = 60 + Math.random() * (MAPW - 120), y = 60 + Math.random() * (MAPH - 120); if (free(x, y, 40) && !nearRiver(x, y, 40)) traps.push({ k, x, y, r: k === 'espinho' ? 14 : rand(26, 40) }); }
@@ -176,6 +183,7 @@ function makeSpots() {
     if (Math.hypot(x - MAPW / 2, y - MAPH / 2) < 220 || nearRiver(x, y, rx + 20) || spots.some(s => dist2(s.x, s.y, x, y) < (rx + 30) ** 2) || acudes.some(a => dist2(a.x, a.y, x, y) < 260 * 260)) continue;
     acudes.push({ x, y, rx, ry }); i++;
   }
+  makeExtraWorld();
 }
 function placeProps() {
   G.nProps = 0;
@@ -188,6 +196,7 @@ function placeProps() {
 function propLoot(e) {
   const L = player.st.luck, r = Math.random();
   if (e.type === 'pote') { for (let i = 0; i < 4; i++) drop(e.x + rand(-6, 6), e.y + rand(-6, 6), 'xp', 2); if (r < 0.15 * L) drop(e.x, e.y, 'rap', 2); }
+  else if (e.d.neutral) { const f = FOODS[e.type === 'jumento' ? 1 : 0]; drop(e.x, e.y, f[0], f[1]); items[items.length - 1].food = true; }
   else if (e.type === 'cerca') { if (r < 0.35 * L) { const f = FOODS[Math.random() < 0.5 ? 0 : 1]; drop(e.x, e.y, f[0], f[1]); } else drop(e.x, e.y, 'xp', 3); }
   else { drop(e.x, e.y, 'rap', 3 + (Math.random() * 3 | 0)); if (r < 0.5 * L) drop(e.x + 6, e.y, 'baiao', 50); }
 }
@@ -235,7 +244,7 @@ function spawnCart() {
   banner('Lá vem o carro de boi!');
 }
 function pickType(m) {
-  const w = [['morcego', Math.max(2, 10 - m)], ['vagalume', m > 0.5 ? 4 : 0], ['saci', m >= 2 ? 1.6 + m * 0.25 : 0], ['mula', m >= 4 ? 0.5 + (m - 4) * 0.4 : 0], ['curupira', m >= 3 ? 1 + m * 0.12 : 0], ['trapalhona', m >= 1.5 ? 1.2 : 0], ['cabra', m >= 3 ? 0.4 + (m - 3) * 0.1 : 0], ['lambisgoia', m >= 5 ? 0.35 + (m - 5) * 0.04 : 0]];
+  const w = [['morcego', Math.max(2, 10 - m)], ['vagalume', m > 0.5 ? 4 : 0], ['saci', m >= 2 ? 1.6 + m * 0.25 : 0], ['mula', m >= 4 ? 0.5 + (m - 4) * 0.4 : 0], ['curupira', m >= 3 ? 1 + m * 0.12 : 0], ['trapalhona', m >= 1.5 ? 1.2 : 0], ['cabra', m >= 3 ? 0.4 + (m - 3) * 0.1 : 0], ['lambisgoia', m >= 5 ? 0.35 + (m - 5) * 0.04 : 0], ['coruja', m >= 6 ? 0.6 + (m - 6) * 0.05 : 0], ['tatu', m >= 8 ? 0.5 + (m - 8) * 0.05 : 0], ['rezadeira', m >= 10 && enemies.filter(e => e.type === 'rezadeira').length < 3 ? 0.3 : 0]];
   let tot = 0; for (const x of w) tot += x[1]; let r = Math.random() * tot;
   for (const x of w) { r -= x[1]; if (r <= 0) return x[0]; } return 'morcego';
 }
@@ -255,10 +264,10 @@ const EVENTS = {
   vento:   { first: 160, every: [90, 120], run: () => spawnWhirl() },
   galinha: { first: 185, every: [160, 220], run: () => spawnHen() },
   urubus:  { first: 205, every: [100, 140], run: () => spawnFlock() },
-  chuva:   { first: 230, every: [240, 300], max: 2, hold: 36, run: () => { G.rain = 30; pools.length = 0; banner('Chuva no sertão!'); } },
+  chuva:   { first: 230, every: [240, 320], max: 5, hold: 36, run: () => { G.rain = 30; pools.length = 0; banner('Chuva no sertão!'); } },
   caipora: { first: 250, every: [120, 160], run: () => spawnCaipora() },
   cajus:   { first: 280, every: [240, 330], run: () => { G.cajuRain = 10; banner('Chuva de cajus!'); } },
-  mulas:   { first: 450, every: [280, 320], max: 2, run: () => stampede() },
+  mulas:   { first: 450, every: [260, 320], max: 5, run: () => stampede() },
   horda:   { first: 140, every: [75, 105], run: () => spawnFormation() },
   romaria: { first: 300, every: [180, 240], run: () => spawnPilgrims() },
   porca:   { first: 330, every: [150, 200], run: () => spawnPorca() },
@@ -267,7 +276,7 @@ const EVENTS = {
 };
 const EVENT_GAP = 25;
 function eventBlocked(t) {
-  return t < G.evNext || G.rain > 0 || (!G.inf && t > RUN - 15) || (G.boss && G.boss.alive) || defV() || BOSSES.some(b => t > b.t - 22 && t < b.t + 4) || (G.inf && t >= 900 && (t - 900) % 150 > 128);
+  return t < G.evNext || G.rain > 0 || (!G.inf && t > RUN - 15) || (G.boss && G.boss.alive) || defV() || BOSSES.some(b => t > b.t - 22 && t < b.t + 4) || (G.inf && t >= RUN && (t - RUN) % 150 > 128);
 }
 function runEvents(t) {
   if (!G.evDue) { G.evDue = {}; G.evCount = {}; for (const k in EVENTS) G.evDue[k] = EVENTS[k].first + rand(-10, 10); }
@@ -319,8 +328,9 @@ function director(dt) {
     if (hr > 0.8) G.adapt = Math.min(1.8, G.adapt + 0.04);
     else if (hr < 0.45) G.adapt = Math.max(0.65, G.adapt - 0.12);
   }
-  G.hpMult = 1 + t / 150 + (t / 300) ** 2; // cresce mais rápido na segunda metade da noite
-  const ramp = Math.min(1, 0.65 + t / 120), cap = Math.min(560, 40 + t / 2.2 + (t / 300) ** 2 * 25), rate = Math.min(40, 1.5 + t / 26 + (t / 300) ** 2 * 1.5) * G.adapt * ramp * (G.nm ? 1.3 : 1); // começo mais leve
+  // até os 15 min cresce em curva; depois segue subindo em linha até o fim dos 30 min
+  G.hpMult = 1 + t / 150 + (Math.min(t, 900) / 300) ** 2 + Math.max(0, t - 900) / 60;
+  const ramp = Math.min(1, 0.85 + t / 200), cap = Math.min(560, 60 + t / 2.2 + (t / 300) ** 2 * 25), rate = Math.min(40, 2.6 + t / 26 + (t / 300) ** 2 * 1.5) * G.adapt * ramp * (G.nm ? 1.3 : 1) * (1 + 0.12 * (player.pass.olhogordo || 0)); // começo ágil, mas com inimigos fracos
   G.spawnAcc = Math.min(5, G.spawnAcc + rate * dt);
   while (G.spawnAcc >= 1 && enemies.length - G.nProps < cap) { G.spawnAcc -= 1; const [x, y] = edgePos(); spawnEnemy(pickType(m), x, y); }
   const sw = Math.floor(t / 60);
@@ -328,13 +338,13 @@ function director(dt) {
     G.events['s' + sw] = 1; const a = Math.random() * 6.283, n = Math.round((8 + m * 3.5) * G.adapt);
     for (let i = 0; i < n; i++) { const [x, y] = edgePos(a); spawnEnemy('vagalume', x, y); }
   }
-  if (!G.blood && t >= 720) { G.blood = true; banner('Lua de sangue!'); }
+  if (!G.blood && t >= 1380) { G.blood = true; banner('Lua de sangue!'); }
   for (const b of BOSSES) {
     if (t >= b.t - 5 && !G.events['w' + b.type]) { G.events['w' + b.type] = 1; G.warn = { ang: Math.random() * 6.283, until: b.t }; banner(b.name + ' se aproxima...'); sfx('warn'); }
     if (t >= b.t && !G.bossDone[b.type]) { G.bossDone[b.type] = 1; spawnBoss(b); }
   }
   if (G.rain > 0) { G.muriAcc += 1.2 * dt; while (G.muriAcc >= 6 && enemies.filter(e => e.type === 'muricoca').length < 36) { G.muriAcc -= 6; /* limite: eram 150 por chuva */ const a = Math.random() * 6.283; for (let i = 0; i < 6; i++) { const [x, y] = edgePos(a); spawnEnemy('muricoca', x, y); } } }
-  if (G.inf && t >= 900) { const k = Math.floor((t - 900) / 150); if (!G.events['ib' + k]) { G.events['ib' + k] = 1; const b = BOSSES[k % BOSSES.length]; spawnBoss(b); G.boss.hp = G.boss.maxHp = G.boss.maxHp * (1 + (t - 900) / 300); } }
+  if (G.inf && t >= RUN) { const k = Math.floor((t - RUN) / 150); if (!G.events['ib' + k]) { G.events['ib' + k] = 1; const b = BOSSES[k % BOSSES.length]; spawnBoss(b); G.boss.hp = G.boss.maxHp = G.boss.maxHp * (1 + (t - RUN) / 300); } }
   if (t >= G.pwT) { G.pwT = t + rand(45, 65) / player.st.luck; spawnPower(); }
   if (t >= G.velhaT) { G.velhaT = t + rand(90, 130); const sd = Math.random() < 0.5 ? 1 : -1, x = clamp(player.x + player.fx * 170 - player.fy * 70 * sd, 20, MAPW - 20), y = clamp(player.y + player.fy * 120 + player.fx * 70 * sd, 20, MAPH - 20); if (!inRiver(x, y)) spawnEnemy('velha', x, y); }
   if (t >= G.eliteT) { G.eliteT = t + rand(40, 60) * Math.max(0.45, 1 - t / 1200); spawnElite(); }
@@ -343,10 +353,10 @@ function director(dt) {
   if (G.foodT <= 0) { G.foodT = rand(16, 26) / player.st.luck; spawnFood(); }
 }
 function updEnemies(dt) {
-  const px = player.x, py = player.y, dm = (1 + G.time / 480) * Math.min(1, 0.6 + G.time / 150) * (G.nm ? 1.4 : 1);
+  const px = player.x, py = player.y, dm = (1 + Math.min(G.time, 900) / 480 + Math.max(0, G.time - 900) / 900) * Math.min(1, 0.6 + G.time / 150) * (G.nm ? 1.4 : 1);
   for (const e of enemies) {
     if (!e.alive) continue;
-    if (e.d.prop) { e.flash -= dt; continue; }
+    if (e.d.prop) { if (e.d.neutral) EXH.wander(e, dt); e.flash -= dt; continue; }
     if (e.enter > 0) { e.enter -= dt; e.t += dt; if (Math.random() < 0.7) part(e.x + rand(-14, 14), e.y + 10, rand(-20, 20), rand(-25, -5), 0.5, '#b8a27a', 2); continue; }
     e.t += dt; e.flash -= dt;
     if (e.d.seg) {
@@ -447,7 +457,9 @@ function updEnemies(dt) {
           if (Math.random() < 0.7) part(e.x, e.y, rand(-15, 15), rand(-15, 15), 0.4, Math.random() < 0.5 ? '#5fd4ff' : '#a8eaff', 2, true);
           break;
         }
+        default: if (EB2[e.type]) { const v = EB2[e.type](e, dt, dx, dy, d, px, py, dm); if (v) { vx = v[0]; vy = v[1]; } }
       }
+      if (e.d.boss && e.raged) EXH.p2(e, dt);
       if (e.march > 0) { e.march -= dt; const sp = Math.max(45, e.spd); vx = e.cdx * sp; vy = e.cdy * sp; }
       if (muds.length && !e.d.boss && muds.some(m => dist2(m.x, m.y, e.x, e.y) < m.r * m.r)) { vx *= 0.45; vy *= 0.45; }
       if (G.rain > 0) { vx *= 0.8; vy *= 0.8; }
@@ -464,8 +476,8 @@ function updEnemies(dt) {
       e.x = clamp(e.x, 4, MAPW - 4); e.y = clamp(e.y, 4, MAPH - 4);
     }
     const rr = e.r + player.r;
-    if (dist2(px, py, e.x, e.y) < rr * rr) {
-      const hp0 = player.hp; playerHit(e.d.dmg * dm * (e.elite ? 1.5 : 1));
+    if (!e.hide && dist2(px, py, e.x, e.y) < rr * rr) {
+      const hp0 = player.hp; playerHit(e.d.dmg * dm * (e.elite ? 1.5 : 1), e);
       if (player.hp < hp0 && ((e.type === 'cabra' && e.ch > 0) || e.type === 'caipora')) { const d = Math.hypot(px - e.x, py - e.y) || 1; player.kx += (px - e.x) / d * 150; player.ky += (py - e.y) / d * 150; if (e.type === 'cabra') e.ch = 0; }
     }
   }
@@ -484,20 +496,22 @@ function deathFx(e) {
   }
 }
 function hurt(e, dmg, kx, ky, src) {
-  const t = e.parent || e; if (!t.alive || !e.alive) return;
-  let crit = false;
-  if (src) { t.lastSrc = src; if (save.gold[src]) dmg *= 1.1; if (Math.random() < 0.05 + 0.02 * (player.pass.ferradura || 0)) { dmg *= 2; crit = true; } }
+  const t = e.parent || e; if (!t.alive || !e.alive || e.hide) return;
+  let crit = false; dmg = EXH.hurtMul(t, dmg);
+  if (src) { t.lastSrc = src; if (save.gold[src]) dmg *= 1.1; if (Math.random() < 0.05 + 0.02 * (player.pass.ferradura || 0) + EXH.critChance()) { dmg *= EXH.critMul(); crit = true; } }
   if (src) G.dmg[src] = (G.dmg[src] || 0) + dmg;
   t.hp -= dmg; e.flash = 0.08; t.flash = 0.08;
   if (t.d.boss && !t.raged && t.hp > 0 && t.hp < t.maxHp * 0.5) { t.raged = true; t.spd *= 1.2; banner(t.bossName + ' ficou furioso!'); G.shake = Math.max(G.shake, 5); burst(t.x, t.y, '#ff3b2e', 24, true); }
   if (!t.d.boss && !t.d.prop && kx !== undefined) { const kb = t.elite ? 0.25 : 1; e.kx += kx * kb; e.ky += ky * kb; }
-  num(e.x, e.y - e.r - 3, dmg, crit ? DY : DW, crit); sfx('hit');
+  // números agrupados: golpes seguidos no mesmo inimigo somam no mesmo número
+  const ln = e.ln; if (!crit && ln && ln.life > ln.max - 0.25 && nums.includes(ln)) { ln.v += Math.max(1, Math.round(dmg)); ln.x = e.x; ln.y = Math.min(ln.y, e.y - e.r - 3); } else { const n = num(e.x, e.y - e.r - 3, dmg, crit ? DY : DW, crit); if (!crit) e.ln = n; }
+  if (crit) { for (let i = 0; i < 5; i++) part(e.x, e.y - 3, rand(-50, 50), rand(-60, -10), 0.35, i % 2 ? '#fff6a0' : '#f2c14e', 1, true); sfx('crit'); } else sfx('hit');
   if (t.hp <= 0) kill(t);
 }
 function kill(e) {
   if (!e.alive) return; e.alive = false;
   if (e.d.prop) { G.nProps--; burst(e.x, e.y, e.d.col, 10); propLoot(e); return; }
-  G.kills++; G.byEnemy[e.type] = (G.byEnemy[e.type] || 0) + 1;
+  G.kills++; G.byEnemy[e.type] = (G.byEnemy[e.type] || 0) + 1; EXH.onKill(e);
   if (LENDAS[e.type] && !save.figs[e.type]) { save.figs[e.type] = true; persist(); toast('Nova figurinha: ' + (ENAMES[e.type] || e.type)); }
   if (player.pass.terco && G.kills % 10 === 0) player.hp = Math.min(player.maxHp, player.hp + player.pass.terco);
   if (e.lastSrc && WEAPONS[e.lastSrc]) { const wk = save.stats.wkills, c = wk[e.lastSrc] = (wk[e.lastSrc] || 0) + 1; if (c >= 5000 && !save.gold[e.lastSrc]) { save.gold[e.lastSrc] = true; persist(); toast(WEAPONS[e.lastSrc].name + ' dourada liberada: +10% de dano para sempre!'); refreshSlots(); } }
@@ -520,10 +534,12 @@ function kill(e) {
 }
 
 /* ---------------- jogador ---------------- */
-function playerHit(dmg) {
+function playerHit(dmg, src) {
   if (player.inv > 0 || mode !== 'play' || G.dawn) return;
   if (player.pass.pecoelho && Math.random() < 0.08 * player.pass.pecoelho) { player.inv = 0.3; burst(player.x, player.y, '#f0ead6', 6); return; }
-  player.hp -= dmg * (G.altar && G.altar.k === 'couro' ? 0.5 : 1) * (G.finalT > 0 ? 0.5 : 1); player.inv = 0.6; G.shake = Math.max(G.shake, 3); G.hurtFlash = 0.25; sfx('hurt');
+  if (EXH.block(dmg, src)) return;
+  player.hp -= EXH.dmgIn(dmg, src) * (G.altar && G.altar.k === 'couro' ? 0.5 : 1) * (G.finalT > 0 ? 0.5 : 1); player.inv = 0.6; G.shake = Math.max(G.shake, 3); G.hurtFlash = 0.25; sfx('hurt');
+  EXH.onHit(dmg, src);
   if (player.hp <= 0) {
     if (player.pass.fitinha && !G.fita) { G.fita = true; player.hp = player.maxHp * 0.3; player.inv = 2; toast('A fitinha do Bonfim arrebentou!'); burst(player.x, player.y, '#f2c14e', 24, true); }
     else if (save.up.reviver && !G.revived) {
@@ -553,7 +569,7 @@ function collect(it) {
   else if (it.kind === 'rap') { G.rap += it.v; sfx('coin'); num(player.x, player.y - 12, it.v, DY); }
   else if (it.kind === 'bau') { G.pendingChest++; sfx('coin'); }
   else if (PWK.has(it.kind)) powerUp(it.kind);
-  else { const h = Math.min(it.v, player.maxHp - player.hp); player.hp += h; sfx('coin'); num(player.x, player.y - 12, it.v, DG); }
+  else { const v = it.v * EXH.foodMul(), h = Math.min(v, player.maxHp - player.hp); player.hp += h; sfx('coin'); num(player.x, player.y - 12, v, DG); }
 }
-function addXp(v) { player.xp += v * (1 + 0.05 * (save.prest || 0)); while (player.xp >= player.next) { player.xp -= player.next; player.level++; player.next = need(player.level); G.pendingLv++; } }
+function addXp(v) { player.xp += v * (1 + 0.05 * (save.prest || 0)) * EXH.xpMul(); while (player.xp >= player.next) { player.xp -= player.next; player.level++; player.next = need(player.level); G.pendingLv++; EXH.onLevel(); } }
 

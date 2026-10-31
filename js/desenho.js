@@ -16,16 +16,7 @@ function drawPatches() {
   ctx.globalAlpha = 1;
 }
 function drawRoads() {
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  for (const r of roads) for (let i = 1; i < r.length; i++) {
-    const a = r[i - 1], b = r[i];
-    if (Math.max(a.x, b.x) < camX - 40 || Math.min(a.x, b.x) > camX + VW + 40 || Math.max(a.y, b.y) < camY - 40 || Math.min(a.y, b.y) > camY + VH + 40) continue;
-    ctx.strokeStyle = '#2b2a45'; ctx.lineWidth = 32; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-    ctx.strokeStyle = '#34324f'; ctx.lineWidth = 24; ctx.stroke();
-    const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L * 6, ny = dx / L * 6;
-    ctx.strokeStyle = '#2a2944'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a.x + nx, a.y + ny); ctx.lineTo(b.x + nx, b.y + ny); ctx.moveTo(a.x - nx, a.y - ny); ctx.lineTo(b.x - nx, b.y - ny); ctx.stroke();
-  }
-  ctx.lineCap = 'butt';
+  EXH.drawRoads();
   for (const g of graves) if (onScreen(g.x, g.y, g.r)) { ctx.fillStyle = 'rgba(120,130,170,0.08)'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.7, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = 'rgba(92,58,28,0.6)'; ctx.setLineDash([3, 5]); ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]); }
 }
 function drawPuddles() {
@@ -89,19 +80,21 @@ function drawAllies() {
     if (w.id === 'folhetos' && !G.dawn) { const s = wstat('folhetos', w.lvl, w.ev); for (let i = 0; i < s.n; i++) { const a = (w.ang || 0) + i * 6.283 / s.n; drawSpr(S.folha, player.x + Math.cos(a) * s.rad, player.y + Math.sin(a) * s.rad, { sc: w.ev ? 1.6 : 1 }); } }
     if (w.id === 'galo' && w.galos) for (const g of w.galos) { shadow(g.x, g.y + 4, 6); drawSpr(S.galo, g.x, g.y - (g.peck > 0 ? 1 : 0), { flip: g.vx < 0 }); }
   }
+  EXH.drawAllies();
 }
 function drawDecor() { const cx0 = Math.max(0, ((camX - 30) / 256) | 0), cx1 = ((camX + VW + 30) / 256) | 0, cy0 = Math.max(0, ((camY - 30) / 256) | 0), cy1 = ((camY + VH + 30) / 256) | 0;
-  for (let gx = cx0; gx <= cx1; gx++) for (let gy = cy0; gy <= cy1; gy++) { const cell = decorGrid.get(gx * 1000 + gy); if (cell) for (const d of cell) if (onScreen(d.x, d.y, 20) && !nearRiver(d.x, d.y, 4) && !(acudes.length && inWater(d.x, d.y)) && !inVillage(d.x, d.y) && !inGrave(d.x, d.y) && !onRoad(d.x, d.y)) { const s = S[d.k]; if (TALL.has(d.k)) longShadow(s, d.x, d.y + s.H / 2, 1); drawSpr(s, d.x, d.y); } } }
+  for (let gx = cx0; gx <= cx1; gx++) for (let gy = cy0; gy <= cy1; gy++) { const cell = decorGrid.get(gx * 1000 + gy); if (cell) for (const d of cell) if (onScreen(d.x, d.y, 20) && !nearRiver(d.x, d.y, 4) && !(acudes.length && inWater(d.x, d.y)) && !inVillage(d.x, d.y) && !inGrave(d.x, d.y) && !onRoad(d.x, d.y)) { const s = S[d.k]; if (TALL.has(d.k)) longShadow(s, d.x, d.y + s.H / 2, 1); drawSpr(s, d.x, d.y); } }
+  EXH.drawTrees(); }
 function drawGround() {
   for (const m of muds) { if (!onScreen(m.x, m.y, m.r)) continue; ctx.globalAlpha = 0.6 * Math.min(1, m.life / 0.5); ctx.fillStyle = '#4a3624'; ctx.beginPath(); ctx.ellipse(m.x, m.y, m.r, m.r * 0.6, 0, 0, 6.283); ctx.fill(); }
   ctx.globalAlpha = 1;
   for (const fr of fires) { if (!onScreen(fr.x, fr.y, fr.r + 10)) continue; const a = Math.min(1, fr.life / 2); ctx.globalAlpha = 0.55 * a; ctx.fillStyle = '#2a140c'; ctx.beginPath(); ctx.ellipse(fr.x, fr.y, fr.r, fr.r * 0.65, 0, 0, 6.283); ctx.fill(); ctx.globalAlpha = a;
     for (let i = 0; i < fr.r / 2; i++) { const an = Math.random() * 6.283, rr = fr.r * (0.7 + Math.random() * 0.3); ctx.fillStyle = Math.random() < 0.5 ? '#e8832a' : '#f2c14e'; ctx.fillRect(Math.round(fr.x + Math.cos(an) * rr), Math.round(fr.y + Math.sin(an) * rr * 0.65 - 2), 1, 2 + (Math.random() * 3 | 0)); } }
   ctx.globalAlpha = 1;
-  for (const r of roots) { if (!onScreen(r.x, r.y, 20)) continue; const k = Math.min(1, r.t / 0.9); if (r.t < 0.9) { ctx.strokeStyle = 'rgba(92,58,28,0.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(r.x, r.y, 16, 9, 0, 0, 6.283); ctx.stroke(); } drawSpr(S.raiz, r.x, r.y - 3 * k, { sc: 0.5 + k * 1.3 }); }
+  for (const r of roots) { if (!onScreen(r.x, r.y, 20)) continue; const k = Math.min(1, r.t / 0.9); if (r.t < 0.9) { ctx.strokeStyle = 'rgba(255,59,46,0.75)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(r.x, r.y, 16, 9, 0, 0, 6.283); ctx.stroke(); } drawSpr(S.raiz, r.x, r.y - 3 * k, { sc: 0.5 + k * 1.3 }); }
   for (const h of honeys) { if (!onScreen(h.x, h.y, h.r)) continue; ctx.globalAlpha = 0.4 * Math.min(1, h.life / 0.6); ctx.fillStyle = '#e8a020'; ctx.beginPath(); ctx.ellipse(h.x, h.y, h.r, h.r * 0.6, 0, 0, 6.283); ctx.fill(); }
   ctx.globalAlpha = 1;
-  for (const g of goos) { if (!onScreen(g.x, g.y, 30)) continue; ctx.globalAlpha = 0.55 * Math.min(1, g.life / 0.6); ctx.fillStyle = '#3f8a2e'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = '#9fe07a'; ctx.fillRect(Math.round(g.x - 4), Math.round(g.y - 2), 2, 1); ctx.fillRect(Math.round(g.x + 5), Math.round(g.y + 2), 1, 1); }
+  for (const g of goos) { if (!onScreen(g.x, g.y, 30)) continue; ctx.globalAlpha = 0.55 * Math.min(1, g.life / 0.6); ctx.fillStyle = g.c ? '#24407a' : '#6e2a3a'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = g.c ? '#7fb2e5' : '#ff6a5a'; ctx.fillRect(Math.round(g.x - 4), Math.round(g.y - 2), 2, 1); ctx.fillRect(Math.round(g.x + 5), Math.round(g.y + 2), 1, 1); }
   for (const m of marks) { if (!onScreen(m.x, m.y, 10)) continue; ctx.globalAlpha = Math.min(0.85, m.life / 2); ctx.fillStyle = '#c86a3a'; ctx.fillRect(Math.round(m.x - Math.sin(m.a) * 2 * m.s), Math.round(m.y + Math.cos(m.a) * 2 * m.s), 2, 1); }
   ctx.globalAlpha = 1;
   for (const s of spots) { if (!onScreen(s.x, s.y, 30)) continue;
@@ -116,6 +109,7 @@ function drawGround() {
   for (const village of villages) for (const h of village.houses) if (onScreen(h.x, h.y, 40)) { longShadow(S.casa, h.x, h.y + S.casa.H, 2); shadow(h.x, h.y + 11, 34); drawSpr(S.casa, h.x, h.y, { sc: 2 }); }
   for (const g of graves) for (const t of g.list) if (onScreen(t.x, t.y, 20)) { longShadow(S.tumulo, t.x, t.y + S.tumulo.H / 2, 1); drawSpr(S.tumulo, t.x, t.y); }
   for (const village of villages) if (village.def > 0) for (const v of village.vill) if (v.hp > 0) { shadow(v.x, v.y + 5, 7); drawSpr(S.morador, v.x, v.y); ctx.fillStyle = '#000'; ctx.fillRect(Math.round(v.x - 7), Math.round(v.y - 9), 14, 3); ctx.fillStyle = '#86d46f'; ctx.fillRect(Math.round(v.x - 6), Math.round(v.y - 8), Math.round(12 * v.hp / 60), 1); }
+  EXH.drawGround();
   for (const tr of trails) { if (!onScreen(tr.x, tr.y, 10)) continue; ctx.globalAlpha = Math.min(0.6, tr.life / 1.5); ctx.fillStyle = '#c8463c'; ctx.fillRect(Math.round(tr.x) - 2, Math.round(tr.y), 4, 2); }
   ctx.globalAlpha = 1;
   {
@@ -136,12 +130,14 @@ function drawMini() { // radar da região em volta do jogador; setas na borda pa
   const mx = x => x0 + (x - ox) * kx, my = y => y0 + (y - oy) * ky, inside = (x, y) => x >= ox && x <= ox + RW && y >= oy && y <= oy + RH;
   ctx.fillStyle = 'rgba(9,12,34,0.8)'; ctx.fillRect(x0 - 1, y0 - 1, W + 2, H + 2);
   ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, W, H); ctx.clip();
-  ctx.strokeStyle = 'rgba(52,50,79,0.9)'; ctx.lineWidth = 1; for (const r of roads) { ctx.beginPath(); r.forEach((p, i) => i ? ctx.lineTo(mx(p.x), my(p.y)) : ctx.moveTo(mx(p.x), my(p.y))); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(52,50,79,0.9)'; ctx.lineWidth = 1; for (const r of roadSm) { ctx.beginPath(); for (let i = 0; i < r.length; i += 4) i ? ctx.lineTo(mx(r[i].x), my(r[i].y)) : ctx.moveTo(mx(r[i].x), my(r[i].y)); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(42,74,48,0.55)'; for (const f of EXW.forests) if (Math.abs(f.x - player.x) < RW && Math.abs(f.y - player.y) < RH) { ctx.beginPath(); ctx.ellipse(mx(f.x), my(f.y), Math.max(1, f.r * kx), Math.max(1, f.r * 0.75 * ky), 0, 0, 6.283); ctx.fill(); }
   ctx.fillStyle = '#22356a'; for (const a2 of acudes) if (inside(a2.x, a2.y) || Math.abs(a2.x - player.x) < RW) { ctx.beginPath(); ctx.ellipse(mx(a2.x), my(a2.y), Math.max(1, a2.rx * kx), Math.max(1, a2.ry * ky), 0, 0, 6.283); ctx.fill(); }
   ctx.strokeStyle = '#22356a'; ctx.lineWidth = 2; ctx.beginPath(); for (let y = oy - 100; y <= oy + RH + 100; y += 80) { const X = mx(riverX(y)), Y = my(y); y > oy - 100 ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); } ctx.stroke(); ctx.lineWidth = 1;
   const dot = (x, y, c, sz) => { ctx.fillStyle = c; ctx.fillRect(Math.round(mx(x) - sz / 2), Math.round(my(y) - sz / 2), sz, sz); };
   for (const v of villages) { ctx.strokeStyle = v.def > 0 ? '#86d46f' : '#8a8070'; ctx.strokeRect(Math.round(mx(v.x)) - 2.5, Math.round(my(v.y)) - 2.5, 5, 5); }
   for (const g of graves) dot(g.x, g.y, '#6a6a80', 3);
+  EXH.miniDots(dot, inside);
   for (const s2 of spots) { if (!inside(s2.x, s2.y)) continue; const c = s2.k === 'capela' ? (s2.charge > 5 ? '#9fc4ff' : null) : s2.k === 'fogo' ? (s2.cd <= 0 && G.rain <= 0 ? '#e8832a' : null) : s2.k === 'altar' ? (s2.cd <= 0 ? '#e05545' : null) : s2.k === 'cruz' ? '#fff6a0' : s2.k === 'poco' ? (s2.cd <= 0 ? '#5fd4ff' : null) : s2.k === 'farinha' ? (s2.cd <= 0 ? '#e8d9b0' : null) : s2.k === 'coronel' ? (s2.cd <= 0 ? '#ece6d3' : null) : null; if (c) dot(s2.x, s2.y, c, 1); }
   if (player.st.lamp) for (const e of enemies) if (e.alive && !e.d.prop && !e.d.seg && inside(e.x, e.y)) dot(e.x, e.y, 'rgba(224,85,69,0.7)', 1);
   for (const it of items) if (PWK.has(it.kind)) dot(it.x, it.y, '#e86a9a', 2);
@@ -178,9 +174,13 @@ function drawEnemies() {
   for (const e of enemies) {
     if (e.d.snake) { snakes.push(e); continue; } if (e.d.seg) continue;
     const sc = e.sc; if (!onScreen(e.x, e.y, 20 * sc)) continue;
-    let s = S[e.d.spr]; if (e.type === 'morcego' && Math.sin(e.t * 14) > 0) s = S.morcego2; if (e.type === 'urubu' && Math.sin(e.t * 9) > 0) s = S.urubu2;
+    let s = S[e.d.spr]; if (e.type === 'morcego' && Math.sin(e.t * 14) > 0) s = S.morcego2; if (e.type === 'urubu' && Math.sin(e.t * 9) > 0) s = S.urubu2; if (e.type === 'coruja' && Math.sin(e.t * 10) > 0) s = S.coruja2;
+    if (e.raged && S[e.d.spr + '_p2']) s = S[e.d.spr + '_p2'];
+    if (e.hide) { ctx.globalAlpha = 1; drawSpr(S.monte, e.x, e.y + 2); continue; }
+    if (e.type === 'cabecadecuia' && e.ch > 0) { shadow(e.x, e.y + s.H * sc / 2 - 1, s.W * sc * 0.6); ctx.save(); ctx.translate(Math.round(e.x), Math.round(e.y)); ctx.rotate(e.t * 9 * Math.sign(e.cdx || 1)); ctx.drawImage(e.flash > 0 ? s.w : s.n, -s.W * sc / 2, -s.H * sc / 2, s.W * sc, s.H * sc); ctx.restore(); continue; }
     s = frameOf(s, e.t * (e.ch > 0 ? 1.8 : 1), Math.abs(e.vx) + Math.abs(e.vy) > 3);
-    ctx.globalAlpha = e.type === 'alma' ? 0.75 : 1;
+    ctx.globalAlpha = e.type === 'alma' || e.type === 'ilusao' ? 0.75 : e.vanish > 0 ? 0.15 : 1;
+    if (EXW.corn.length && inCorn(e.x, e.y)) ctx.globalAlpha *= 0.4;
     if (e.type === 'trapalhona' && e.ch > 0) { ctx.save(); ctx.translate(Math.round(e.x), Math.round(e.y + 2)); ctx.rotate(1.57); ctx.drawImage(e.flash > 0 ? s.w : s.n, -s.W / 2, -s.H / 2); ctx.restore(); continue; }
     let y = e.y - (e.dance > 0 ? Math.abs(Math.sin(e.t * 12)) * 3 : 0); if (e.type === 'saci') y -= Math.abs(Math.sin(e.t * 10)) * 2;
     if (e.type === 'alma' || e.type === 'iara') y -= Math.sin(e.t * 3) * 1.5;
@@ -193,8 +193,8 @@ function drawEnemies() {
   }
   ctx.globalAlpha = 1;
   for (const h of snakes) {
-    for (let i = h.segs.length - 1; i >= 0; i--) { const sg = h.segs[i]; drawSpr(S.boitataSeg, sg.x, sg.y, { sc: Math.max(1.1, 1.7 - i * 0.03), white: h.flash > 0 }); }
-    const hs = S.boitataHead, k = 0.8;
+    for (let i = h.segs.length - 1; i >= 0; i--) { const sg = h.segs[i]; drawSpr(h.raged ? S.boitataSeg_p2 : S.boitataSeg, sg.x, sg.y, { sc: Math.max(1.1, 1.7 - i * 0.03), white: h.flash > 0 }); }
+    const hs = h.raged ? S.boitataHead_p2 : S.boitataHead, k = 0.8;
     ctx.save(); ctx.translate(Math.round(h.x), Math.round(h.y)); ctx.rotate(h.ang); ctx.drawImage(h.flash > 0 ? hs.w : hs.n, Math.round(-hs.W * k / 2), Math.round(-hs.H * k / 2), Math.round(hs.W * k), Math.round(hs.H * k)); ctx.restore();
   }
 }
@@ -215,7 +215,8 @@ function drawProjs() {
     else if (p.k === 'chapeu') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(Math.round(p.t * 16 / 0.785) * 0.785); const s = S.chapeu; ctx.drawImage(s.n, -s.W * p.sc / 2, -s.H * p.sc / 2, s.W * p.sc, s.H * p.sc); ctx.restore(); }
     else if (p.k === 'rojao' && p.delay <= 0) { ctx.fillStyle = '#c8463c'; ctx.fillRect(Math.round(p.x) - 1, Math.round(p.y) - 1, 3, 3); ctx.fillStyle = '#f0ead6'; ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, 1); }
     else if (p.k === 'rede' && p.delay <= 0) { ctx.strokeStyle = '#f0ead6'; ctx.lineWidth = 1; ctx.strokeRect(Math.round(p.x) - 2.5, Math.round(p.y) - 2.5, 5, 5); }
-    else if (p.k === 'pocao') drawSpr(S.pocao, p.x, p.y);
+    else if (p.k === 'pocao') { ctx.strokeStyle = 'rgba(255,59,46,0.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.tx, p.ty, 18, 11, 0, 0, 6.283); ctx.stroke(); drawSpr(S.pocao, p.x, p.y); }
+    else if (DPROJ2[p.k]) DPROJ2[p.k](p);
     else if (p.k === 'chama') drawSpr(S.chama, p.x, p.y);
     else if (p.k === 'barro') { circle(p.x, p.y, 2.5, '#7a5a3a'); ctx.fillStyle = '#9a7a5a'; ctx.fillRect(Math.round(p.x) - 1, Math.round(p.y) - 1, 1, 1); }
   }
@@ -234,6 +235,7 @@ function drawFx() {
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
+  EXH.drawFx();
 }
 function drawParts(glow) {
   for (const p of parts) { if (p.glow !== glow) continue; ctx.globalAlpha = Math.min(1, p.life / p.max * 1.5); ctx.fillStyle = p.c; ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size); }
@@ -268,6 +270,7 @@ function drawGlow() {
   if (G.finalT > 0) circle(player.x, player.y, 18 + Math.sin(G.time * 10) * 3, 'rgba(242,193,78,0.3)');
   for (const e of enemies) if (e.elite && onScreen(e.x, e.y, 30)) circle(e.x, e.y, e.r * 2.2, 'rgba(242,193,78,0.22)');
   for (const s of spots) if (onScreen(s.x, s.y, 50)) { if (s.k === 'fogo' && s.cd <= 0 && !(G.rain > 0)) circle(s.x, s.y, 30, 'rgba(255,140,40,0.25)'); if (s.k === 'capela' && s.charge > 5) circle(s.x, s.y, 26, 'rgba(180,210,255,0.14)'); }
+  EXH.drawGlow();
 }
 function drawNum(n) {
   const k = n.crit ? 2 : 1, s = String(n.v), w = (s.length * 4 + 1) * k; let x = Math.round(n.x - w / 2); const y = Math.round(n.y - (k - 1) * 4);
@@ -276,14 +279,15 @@ function drawNum(n) {
   ctx.globalAlpha = 1;
 }
 function drawJoy() {
-  if (!joy) return; const dx = joy.x - joy.ox, dy = joy.y - joy.oy, l = Math.hypot(dx, dy), k = l > 18 ? 18 / l : 1;
+  if (!joy) { if (save.joyFix && isTouch && mode === 'play') { const [ox, oy] = JOYFIX(); ctx.strokeStyle = 'rgba(244,231,182,0.2)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ox, oy, 20, 0, 6.283); ctx.stroke(); circle(ox, oy, 8, 'rgba(244,231,182,0.18)'); } return; } const dx = joy.x - joy.ox, dy = joy.y - joy.oy, l = Math.hypot(dx, dy), k = l > 18 ? 18 / l : 1;
   ctx.strokeStyle = 'rgba(244,231,182,0.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 20, 0, 6.283); ctx.stroke();
   circle(joy.ox + dx * k, joy.oy + dy * k, 8, 'rgba(244,231,182,0.35)');
 }
 const lightC = document.createElement('canvas'), lightX = lightC.getContext('2d');
 function nightAlpha() {
-  const t = G.time; if (G.inf && t > 900) return 0.84;
-  return t < 450 ? 0.7 + 0.1 * (t / 450) : t < 780 ? 0.8 : 0.8 - 0.42 * Math.min(1, (t - 780) / 120);
+  const t = G.time; if (G.inf && t > RUN) return 0.84;
+  if (G.moon > 0) return 0.6; // lua cheia clareia o sertão
+  return t < 900 ? 0.7 + 0.1 * (t / 900) : t < RUN - 180 ? 0.8 + 0.04 * Math.min(1, (t - 900) / 300) : 0.84 - 0.46 * Math.min(1, (t - (RUN - 180)) / 180);
 }
 function drawLight() { // escuridão com "furos" de luz: jogador, fogueiras, explosões, chamas
   if (lightC.width !== VW || lightC.height !== VH) { lightC.width = VW; lightC.height = VH; }
@@ -304,6 +308,7 @@ function drawLight() { // escuridão com "furos" de luz: jogador, fogueiras, exp
   for (const pg of pilgrims) hole(pg.x, pg.y, 22, 0.55);
   for (const c of carts) hole(c.x, c.y - 4, 34, 0.55);
   for (const c of critters) hole(c.x, c.y, 18, 0.5);
+  EXH.lightHoles(hole);
   if (G.dawn) hole(player.x, player.y, VW * 2, Math.min(1, G.dawn / 1.5));
   ctx.drawImage(lightC, 0, 0);
 }
@@ -337,7 +342,7 @@ function drawTitle() { // tela inicial: vaqueiro na fogueira, lua passando, visa
 function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   if (mode === 'cutscene' && cut) { drawCut(); return; }
-  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach' && mode !== 'stats' && mode !== 'figs');
+  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach' && mode !== 'stats' && mode !== 'figs' && mode !== 'notes');
   if (!inRun) { drawTitle(); return; }
   let cx, cy;
   cx = player.x; cy = player.y;
@@ -346,7 +351,7 @@ function render() {
   ctx.save(); ctx.translate(-camX, -camY);
   ctx.fillStyle = groundPat; ctx.fillRect(camX, camY, VW, VH);
   drawPatches(); drawBorder(); if (inRun) { drawRoads(); drawPuddles(); drawRiver(); drawWater(); drawTraps(); } drawDecor();
-  if (inRun) { drawGround(); drawPools(); drawItems(); drawEnemies(); drawPilgrims(); drawCarts(); drawWhirls(); drawPlayer(); drawAllies(); drawProjs(); drawFx(); drawParts(false); }
+  if (inRun) { drawGround(); drawPools(); drawItems(); drawEnemies(); drawPilgrims(); drawCarts(); drawWhirls(); drawPlayer(); drawAllies(); drawProjs(); drawFx(); drawParts(false); EXH.drawTop(); }
   ctx.restore();
   drawLight();
   if (inRun) {
@@ -354,7 +359,7 @@ function render() {
     ctx.globalCompositeOperation = 'source-over';
     ctx.save(); ctx.translate(-camX, -camY); for (const n of nums) drawNum(n); ctx.restore();
     if (G.blood) { ctx.fillStyle = 'rgba(150,10,20,0.16)'; ctx.fillRect(0, 0, VW, VH); }
-    if (!G.inf && G.time > 780) { ctx.fillStyle = `rgba(255,150,80,${Math.min(1, (G.time - 780) / 120) * 0.14})`; ctx.fillRect(0, 0, VW, VH); }
+    if (!G.inf && G.time > RUN - 180) { ctx.fillStyle = `rgba(255,150,80,${Math.min(1, (G.time - (RUN - 180)) / 180) * 0.14})`; ctx.fillRect(0, 0, VW, VH); }
     drawAmbient();
     if (G.rain > 0) { const a = Math.min(1, G.rain / 2, (30 - G.rain) / 2), T = G.time * 260; ctx.fillStyle = `rgba(20,30,60,${0.25 * a})`; ctx.fillRect(0, 0, VW, VH); ctx.strokeStyle = `rgba(160,190,240,${0.45 * a})`; ctx.lineWidth = 1; ctx.beginPath();
       for (let i = 0; i < 90; i++) { const x = (i * 97.3 + T * 0.25) % (VW + 20) - 10, y = (i * 53.7 + T) % (VH + 20) - 10; ctx.moveTo(Math.round(x), Math.round(y)); ctx.lineTo(Math.round(x - 2), Math.round(y + 6)); }

@@ -146,6 +146,12 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 @keyframes danca{0%{transform:translateY(0) scaleX(1)}25%{transform:translateY(-8px) scaleX(1)}50%{transform:translateY(0) scaleX(-1)}75%{transform:translateY(-8px) scaleX(-1)}}
 @media (prefers-reduced-motion:reduce){#over-dance{animation:none}}
 .slot.gold{border-color:#ffd23f;box-shadow:0 0 6px #ffd23f}
+.slot.fz{animation:fzb .6s steps(2) infinite}
+@keyframes fzb{50%{border-color:#ff8ad8;box-shadow:0 0 8px #ff8ad8}}
+.slot.cursed{border-color:#8160a8}
+#nextboss{position:absolute;left:50%;top:calc(13px + clamp(28px,7vh,40px));transform:translateX(-50%);font-size:16px;color:var(--red);text-shadow:1px 1px 0 #000;white-space:nowrap}
+#ver{font-size:16px;color:var(--dim)}
+#notelist .item .tx span{font-size:18px}
 #abil{position:absolute;right:max(2.5vh,env(safe-area-inset-right));bottom:calc(22vh + 10px);width:76px;height:76px;border-radius:50%;pointer-events:auto;background:rgba(22,29,69,.88);border:3px solid var(--acc);color:var(--moon);font-family:inherit;font-size:21px;line-height:1;overflow:hidden;cursor:pointer;padding:0}
 #abil.cool{border-color:var(--line)}
 #abil span{position:relative;z-index:1}
@@ -161,6 +167,8 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 .menu-grid .btn{min-width:170px;font-size:clamp(19px,4.6vh,26px)}
 .item .tx span{display:block}
 .char .skin{font-size:18px;margin-top:6px}
+.char .pas{font-size:16px;color:var(--dim);line-height:1}
+@media (max-height:520px){.char .pas{font-size:14px}.char{gap:0;line-height:1;font-size:16px;padding:6px 8px}.char .cimg{width:28px;height:33px;margin:0}.char b{font-size:22px}.char .btn{margin-top:4px;font-size:18px}.char .skin{font-size:15px;margin-top:3px}#charlist{overflow-y:auto}}
 </style>
 </head>
 <body>
@@ -170,6 +178,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
   <div id="xpbar"><div id="xpfill"></div><span id="lvl">Nv 1</span></div>
   <div id="slots"><div id="wslots"></div><div id="pslots"></div></div>
   <div id="timer">00:00</div>
+  <div id="nextboss"></div>
   <div id="stats">
     <span id="kills">0 abates</span>
     <span class="rapbox"><img data-ico="rap" alt=""><span id="hud-rap">0</span></span>
@@ -195,10 +204,13 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
         <button class="btn ghost" data-go="figs">Figurinhas</button>
         <button class="btn ghost" id="btn-sound">Som ligado</button>
         <button class="btn ghost hidden" id="btn-install">Instalar no celular</button>
+        <button class="btn ghost" data-go="notes">Novidades</button>
+        <button class="btn ghost" id="btn-joy">Joystick solto</button>
+        <button class="btn ghost hidden" id="btn-err" style="color:var(--red)">Copiar último erro</button>
       </div>
     </div>
     <p id="tip" class="sub" style="font-size:20px;max-width:min(680px,90vw);margin-top:6px"></p>
-    <div id="menu-foot"><span id="rec"></span><span class="rapbox"><img data-ico="rap" alt=""><span class="rapn">0</span></span></div>
+    <div id="menu-foot"><span id="rec"></span><span id="ver"></span><span class="rapbox"><img data-ico="rap" alt=""><span class="rapn">0</span></span></div>
   </section>
 
   <section id="s-chars" class="screen">
@@ -231,6 +243,12 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
     <button class="btn ghost small" data-go="menu">Voltar</button>
   </section>
 
+  <section id="s-notes" class="screen">
+    <h2>Novidades</h2>
+    <div id="notelist" class="list" style="max-height:62vh"></div>
+    <button class="btn ghost small" data-go="menu">Voltar</button>
+  </section>
+
   <section id="s-stats" class="screen">
     <h2>Estatísticas</h2>
     <div id="statlist" class="list"></div>
@@ -248,6 +266,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
   <section id="s-level" class="screen">
     <h2>Subiu de nível!</h2>
     <div id="cards" class="row"></div>
+    <button class="btn ghost small" id="btn-reroll">Sortear de novo</button>
   </section>
 
   <section id="s-chest" class="screen">
@@ -282,12 +301,14 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 <div id="cut"><p id="cut-txt"></p><span>Toque para pular</span></div>
 <div id="rotate"><div class="ph"></div>Gire o celular para jogar deitado</div>
 
-<script src="js/base.js?v=1"></script>
-<script src="js/dados.js?v=1"></script>
-<script src="js/mundo.js?v=1"></script>
-<script src="js/armas.js?v=1"></script>
-<script src="js/jogo.js?v=1"></script>
-<script src="js/desenho.js?v=1"></script>
-<script src="js/telas.js?v=1"></script>
+<script src="js/base.js?v=2"></script>
+<script src="js/dados.js?v=2"></script>
+<script src="js/conteudo.js?v=2"></script>
+<script src="js/mundo.js?v=2"></script>
+<script src="js/armas.js?v=2"></script>
+<script src="js/jogo.js?v=2"></script>
+<script src="js/desenho.js?v=2"></script>
+<script src="js/telas.js?v=2"></script>
+<script src="js/extra.js?v=2"></script>
 </body>
 </html>

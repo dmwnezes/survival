@@ -8,17 +8,19 @@ function updHUD() {
   setText('#lvl', 'Nv ' + player.level); setText('#timer', fmt(Math.min(G.time, RUN)));
   setText('#kills', G.kills + (G.kills === 1 ? ' abate' : ' abates')); setText('#hud-rap', String(G.rap));
   const bf = G.nm ? ['Pesadelo'] : []; if (G.buff > 0) bf.push('Fogo ' + Math.ceil(G.buff) + 's'); if (G.ride > 0) bf.push('Carona ' + Math.ceil(G.ride) + 's'); if (G.confuse > 0) bf.push('Confuso'); if (G.slow > 0) bf.push('Lento');
-  if (G.altar) bf.push(G.altar.short + ' ' + Math.ceil(G.altar.t) + 's'); if (G.cang > 0) bf.push('Cangaceiro ' + Math.ceil(G.cang) + 's'); if (G.inf) bf.push('Infinito'); { const dv = defV(); if (dv) bf.push('Moradores ' + Math.ceil(dv.def) + 's'); } if (G.farinha > 0) bf.push('Farinha ' + Math.ceil(G.farinha) + 's'); if (G.stun > 0) bf.push('Preso'); if (G.giant > 0) bf.push('Gigante ' + Math.ceil(G.giant) + 's'); if (G.finalT > 0) bf.push('Forma final ' + Math.ceil(G.finalT) + 's'); if (G.sand) bf.push('Areia');
+  if (G.altar) bf.push(G.altar.short + ' ' + Math.ceil(G.altar.t) + 's'); if (G.cang > 0) bf.push('Cangaceiro ' + Math.ceil(G.cang) + 's'); if (G.inf) bf.push('Infinito'); { const dv = defV(); if (dv) bf.push('Moradores ' + Math.ceil(dv.def) + 's'); } if (G.farinha > 0) bf.push('Farinha ' + Math.ceil(G.farinha) + 's'); if (G.stun > 0) bf.push('Preso'); if (G.giant > 0) bf.push('Gigante ' + Math.ceil(G.giant) + 's'); if (G.finalT > 0) bf.push('Forma final ' + Math.ceil(G.finalT) + 's'); if (G.sand) bf.push('Areia'); if (G.moon > 0) bf.push('Lua cheia ' + Math.ceil(G.moon) + 's'); if (G.esp > 0) bf.push('Espora +' + Math.round(G.esp) + '%');
   setText('#buffs', bf.join(' '));
   const cdMax = CHARS[player.char].abCd * (1 - 0.15 * (player.pass.cuia || 0)), cdk = Math.max(0, G.abCd) / cdMax; $('#abil-cd').style.height = (cdk * 100).toFixed(0) + '%'; $('#abil').classList.toggle('cool', cdk > 0);
   const b = G.boss && G.boss.alive ? G.boss : null; $('#bossbar').style.display = b ? 'block' : 'none';
   if (b) { setText('#bossname', b.bossName); $('#bossfill').style.width = Math.max(0, b.hp / b.maxHp * 100) + '%'; }
+  const nb = b || G.dawn ? null : BOSSES.find(x => !G.bossDone[x.type] && x.t > G.time); setText('#nextboss', nb && nb.t - G.time < 90 && !G.inf ? 'Chefão em ' + fmt(nb.t - G.time) : '');
 }
 function hud(on) { $('#hud').classList.toggle('hidden', !on); hudCache = {}; }
 function refreshSlots() {
   $('#abil-name').textContent = CHARS[player.char].abName;
-  $('#wslots').innerHTML = player.weapons.map(w => `<div class="slot${w.ev ? ' ev' : ''}${save.gold[w.id] ? ' gold' : ''}" title="${w.ev ? WEAPONS[w.id].evoName : WEAPONS[w.id].name}"><img src="${icon(w.id)}" alt=""><i>${w.ev ? '★' : w.lvl}</i></div>`).join('');
-  $('#pslots').innerHTML = Object.entries(player.pass).map(([k, l]) => `<div class="slot" title="${PASSIVES[k].name}"><img src="${icon(k)}" alt=""><i>${l}</i></div>`).join('');
+  const fz = new Set(); for (const fu of FUSIONS) { const A = player.weapons.find(w => w.id === fu.a && w.ev), B = player.weapons.find(w => w.id === fu.b && w.ev); if (A && B) { fz.add(fu.a); fz.add(fu.b); } }
+  $('#wslots').innerHTML = player.weapons.map(w => `<div class="slot${w.ev ? ' ev' : ''}${save.gold[w.id] ? ' gold' : ''}${fz.has(w.id) ? ' fz' : ''}" title="${w.ev ? WEAPONS[w.id].evoName : WEAPONS[w.id].name}"><img src="${icon(w.id)}" alt=""><i>${w.ev ? '★' : w.lvl}</i></div>`).join('');
+  $('#pslots').innerHTML = Object.entries(player.pass).map(([k, l]) => `<div class="slot${PASSIVES[k].cursed ? ' cursed' : ''}" title="${PASSIVES[k].name}"><img src="${icon(k)}" alt=""><i>${l}</i></div>`).join('');
 }
 function show(name) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name)); }
 function hideScreens() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('on')); }
@@ -43,12 +45,16 @@ function goto(name) {
   else if (name === 'ach') { mode = 'ach'; renderAch(); }
   else if (name === 'stats') { mode = 'stats'; renderStats(); }
   else if (name === 'figs') { mode = 'figs'; renderFigs(); }
+  else if (name === 'notes') { mode = 'notes'; $('#notelist').innerHTML = NOTES.map(([v, ...ls]) => `<div class="panel item"><div class="tx"><b>${v}</b>${ls.map(l => `<span>• ${l}</span>`).join('')}</div></div>`).join(''); }
   refreshRap(); show(name);
 }
 function renderMenu() {
   const b = save.best; $('#rec').textContent = b.time ? `Recorde: ${fmt(b.time)}, nível ${b.level}, ${b.kills} abates` : 'A lua está alta. Boa sorte, cabra.';
   $('#btn-sound').textContent = save.sound ? 'Som ligado' : 'Som desligado';
   $('#tip').textContent = 'Dica: ' + TIPS[(Math.random() * TIPS.length) | 0];
+  $('#ver').textContent = VERSION; $('#btn-joy').textContent = save.joyFix ? 'Joystick fixo' : 'Joystick solto';
+  let er = null; try { er = JSON.parse(localStorage.getItem(ERR_KEY)); } catch (e) {}
+  $('#btn-err').classList.toggle('hidden', !er);
   const d = loadRun(), bc = $('#btn-continue'); bc.classList.toggle('hidden', !d); if (d) bc.textContent = `Continuar a noite (${fmt(d.G.time)})`;
 }
 function renderChars() {
@@ -60,7 +66,7 @@ function renderChars() {
     const c = CHARS[id], ok = !!save.chars[id], el = document.createElement('div');
     const sk = SKINS[id], skOk = sk && save.ach[sk.ach], cur = !!(save.skin[id] && skOk);
     el.className = 'panel char' + (ok ? '' : ' locked');
-    el.innerHTML = `<img class="cimg" src="${icon(cur ? id + '_skin' : id)}" alt=""><b>${c.name}</b><span>${WEAPONS[c.weapon].name}</span><span>${c.bonus}</span><span>Habilidade: ${c.abName}</span><span class="lk">Nível ${clvl(id)}${clvl(id) < 10 ? '' : ' (máximo)'}</span>` +
+    el.innerHTML = `<img class="cimg" src="${icon(cur ? id + '_skin' : id)}" alt=""><b>${c.name}</b><span>${WEAPONS[c.weapon].name} · nível ${clvl(id)}${clvl(id) < 10 ? '' : ' (máx.)'}</span><span>${c.bonus}</span><span>Habilidade: ${c.abName}</span><span class="pas">${CPAS[id]}</span>` +
       (ok ? `<button class="btn">Escolher</button>` : `<span class="lk">${c.unlockTxt} ou compre</span><button class="btn" ${save.rap < c.price ? 'disabled' : ''}>Comprar por ${c.price}</button>`) +
       (!ok || !sk ? '' : skOk ? `<button class="btn ghost skin">Visual: ${cur ? sk.name : 'Normal'}</button>` : `<span class="lk">${sk.name}: conquista "${ACH[sk.ach].name}"</span>`);
     const sb = el.querySelector('.skin'); if (sb) sb.onclick = () => { save.skin[id] = !cur; persist(); sfx('ui'); renderChars(); };
@@ -184,8 +190,9 @@ function cardHTML(o) {
   else { ico = icon('rap'); name = 'Rapadura'; tag = 'Moeda'; desc = '+5 rapaduras.'; }
   return `<img class="ci" src="${ico}" alt=""><span class="ct">${tag}</span><b>${name}</b><span class="cd">${desc}</span>`;
 }
-function openLevel() {
-  mode = 'level'; joy = null; sfx('lvl');
+function openLevel(again) {
+  mode = 'level'; joy = null; if (!again) sfx('lvl');
+  const rr = $('#btn-reroll'), cost = 3 + 2 * (G.rerolls || 0); rr.textContent = `Sortear de novo (${cost} rapaduras da noite)`; rr.disabled = G.rap < cost;
   const box = $('#cards'); box.innerHTML = '';
   rollOptions().forEach((o, i) => {
     const b = document.createElement('button'); b.className = 'card ' + (o.k === 'evo' || o.k === 'fuse' ? 'evo' : o.k === 'wnew' || o.k === 'wup' ? 'k-arma' : o.k === 'pnew' || o.k === 'pup' ? 'k-item' : 'k-cura');
@@ -193,6 +200,7 @@ function openLevel() {
   });
   show('level');
 }
+function reroll() { const cost = 3 + 2 * (G.rerolls || 0); if (mode !== 'level' || G.rap < cost) return; G.rap -= cost; G.rerolls = (G.rerolls || 0) + 1; sfx('coin'); openLevel(true); }
 function choose(o) {
   if (mode !== 'level') return; sfx('ui'); const p = player;
   if (o.k === 'wnew') { p.weapons.push({ id: o.id, lvl: 1, cd: 0.2, ev: false }); refreshSyn(); }
@@ -234,7 +242,7 @@ function spinRoleta(b) {
 /* ---------------- baú do coronel ---------------- */
 let chestTimer = 0;
 function rollChest() {
-  const p = player, L = p.st.luck, r = Math.random(), n = r < 0.05 * L ? 3 : r < 0.3 * L ? 2 : 1, out = [];
+  const p = player, L = p.st.luck * (1 + 0.25 * (p.pass.moeda || 0)), r = Math.random(), n = r < 0.05 * L ? 3 : r < 0.3 * L ? 2 : 1, out = [];
   for (let i = 0; i < n; i++) {
     const evo = p.weapons.find(w => !w.ev && w.lvl >= WMAX && p.pass[WEAPONS[w.id].evo] && !out.some(o => o.w === w));
     if (evo) { out.push({ k: 'evo', w: evo }); continue; }
@@ -280,7 +288,7 @@ const RUN_KEY = 'visagem-run-v1';
 function saveRun() {
   if (!G || !player || G.dawn || !['play', 'pause', 'level', 'chest'].includes(mode)) return;
   const data = { v: 1, G: Object.assign({}, G, { boss: null }), boss: G.boss && G.boss.alive ? { type: G.boss.type, f: G.boss.hp / G.boss.maxHp } : null,
-    p: { char: player.char, spr: player.spr, x: player.x, y: player.y, hp: player.hp, xp: player.xp, level: player.level, next: player.next, weapons: player.weapons.map(w => w.fz ? { id: w.id, lvl: w.lvl, ev: w.ev, fz: true, parts: w.parts.map(p => ({ id: p.id, lvl: p.lvl, ev: p.ev })) } : { id: w.id, lvl: w.lvl, ev: w.ev }), pass: player.pass },
+    ex: EXW, p: { char: player.char, spr: player.spr, x: player.x, y: player.y, hp: player.hp, xp: player.xp, level: player.level, next: player.next, weapons: player.weapons.map(w => w.fz ? { id: w.id, lvl: w.lvl, ev: w.ev, fz: true, parts: w.parts.map(p => ({ id: p.id, lvl: p.lvl, ev: p.ev })) } : { id: w.id, lvl: w.lvl, ev: w.ev }), pass: player.pass },
     spots, acudes, traps, villages, roads, graves, riv: RIV, items: items.filter(i => i.kind !== 'xp').map(i => ({ x: i.x, y: i.y, kind: i.kind, v: i.v, food: !!i.food })) };
   try { localStorage.setItem(RUN_KEY, JSON.stringify(data)); } catch (e) {}
 }
@@ -293,14 +301,16 @@ function resumeRun() {
   player = newPlayer(d.p.char);
   Object.assign(player, { spr: d.p.spr, x: d.p.x, y: d.p.y, xp: d.p.xp, level: d.p.level, next: d.p.next, pass: d.p.pass, weapons: d.p.weapons.map(w => Object.assign({ cd: 0.5 }, w, w.parts ? { parts: w.parts.map(p => Object.assign({ cd: 0.5 }, p)) } : {})) });
   recalc(); player.hp = Math.min(player.maxHp, d.p.hp);
-  spots.push(...d.spots); acudes.push(...d.acudes); traps.push(...(d.traps || [])); villages = d.villages || (d.village ? [d.village] : []); roads = d.roads || []; graves = d.graves || []; if (d.riv) RIV = d.riv; placeProps();
+  spots.push(...d.spots); acudes.push(...d.acudes); traps.push(...(d.traps || [])); villages = d.villages || (d.village ? [d.village] : []); roads = d.roads || []; graves = d.graves || []; if (d.riv) RIV = d.riv; buildRoads();
+  if (d.ex) { EXW = d.ex; buildExtraGrids(); } else makeExtraWorld();
+  placeProps();
   for (const i of d.items) { drop(i.x, i.y, i.kind, i.v); items[items.length - 1].food = i.food; }
-  if (d.boss) { spawnBoss(BOSSES.find(x => x.type === d.boss.type)); G.boss.hp = G.boss.maxHp * d.boss.f; }
+  if (d.boss) { spawnBoss(BOSSES.concat(SECRET_BOSS).find(x => x.type === d.boss.type)); G.boss.hp = G.boss.maxHp * d.boss.f; }
   refreshSlots(); refreshSyn(true); hud(true); mode = 'play'; pauseGame();
 }
 
 /* ---------------- fluxo da partida ---------------- */
-function resetLists() { for (const a of [enemies, projs, pools, waves, items, parts, nums, fx, marks, goos, spots, carts, acudes, traps, whirls, critters, honeys, trails, stars, roots, muds, fires, pilgrims]) a.length = 0; villages = []; roads = []; graves = []; grid.clear(); bq.length = 0; clearTimeout(bannerT); $('#banner').classList.remove('on'); }
+function resetLists() { for (const a of [enemies, projs, pools, waves, items, parts, nums, fx, marks, goos, spots, carts, acudes, traps, whirls, critters, honeys, trails, stars, roots, muds, fires, pilgrims]) a.length = 0; villages = []; roads = []; graves = []; grid.clear(); EXH.reset(); bq.length = 0; clearTimeout(bannerT); $('#banner').classList.remove('on'); }
 function startRun(ch) {
   audioInit(); lastChar = ch; resetLists(); clearRun();
   G = newRunState(); player = newPlayer(ch); rollRiver(); recalc(); player.hp = player.maxHp; makeSpots(); placeProps(); refreshSyn(true);
@@ -324,7 +334,8 @@ function pauseGame() {
     const evo = w.ev ? 'Evoluída.' : `Evolui no nível ${WMAX} com ${PASSIVES[W.evo].name} (${player.pass[W.evo] ? 'você tem' : 'falta'}).`;
     return `<div class="panel item"><img src="${icon(w.id)}" alt=""><div class="tx"><b>${w.ev ? W.evoName + (w.ev === 'a' ? ' (Área)' : w.ev === 'f' ? ' (Força)' : '') : W.name} (nível ${w.lvl})</b><span>${bits.join(', ')}</span><span>${evo}</span></div></div>`;
   }).join('') + Object.entries(player.pass).map(([k, l]) => `<div class="panel item"><img src="${icon(k)}" alt=""><div class="tx"><b>${PASSIVES[k].name} (nível ${l}/${PASSIVES[k].max})</b><span>${PASSIVES[k].desc}</span></div></div>`).join('') +
-    Object.entries(SYN).filter(([k]) => G.syn[k]).map(([, x]) => `<div class="panel item"><div class="tx"><b>Sinergia: ${x.name}</b><span>${x.desc}</span></div></div>`).join('');
+    Object.entries(SYN).filter(([k]) => G.syn[k]).map(([, x]) => `<div class="panel item"><div class="tx"><b>Sinergia: ${x.name}</b><span>${x.desc}</span></div></div>`).join('') +
+    FUSIONS.filter(fu => player.weapons.some(w => w.id === fu.a) && player.weapons.some(w => w.id === fu.b)).map(fu => { const ok = player.weapons.some(w => w.id === fu.a && w.ev) && player.weapons.some(w => w.id === fu.b && w.ev); return `<div class="panel item"><img src="${icon(fu.a)}" alt=""><div class="tx"><b>Fusão: ${fu.name}</b><span>${ok ? 'Pronta! Aparece nas cartas ao subir de nível.' : 'Evolua ' + WEAPONS[fu.a].name + ' e ' + WEAPONS[fu.b].name + ' para fundir as duas.'}</span></div></div>`; }).join('');
   show('pause');
 }
 function resumeGame() { if (mode !== 'pause') return; hideScreens(); mode = 'play'; last = performance.now(); audioInit(); }
@@ -343,9 +354,9 @@ function endRun(win) {
   $('#over-title').textContent = win ? 'O sol nasceu!' : 'A visagem te pegou';
   const dz = $('#over-dance'); dz.classList.toggle('hidden', !win); if (win) dz.src = icon(player.spr);
   $('#tip').textContent = 'Dica: ' + TIPS[(Math.random() * TIPS.length) | 0];
-  $('#over-sub').textContent = G.inf ? `Você aguentou ${fmt(t)} no Modo Infinito. Recorde: ${fmt(save.best.inf || t)}.` : win ? (G.nm ? 'Você atravessou o pesadelo inteiro.' : 'Você atravessou a noite inteira.') : 'Ainda faltavam ' + fmt(RUN - t) + ' para o amanhecer.';
+  $('#over-sub').textContent = G.inf ? `Você aguentou ${fmt(t)} no Modo Infinito. Recorde: ${fmt(save.best.inf || t)}.` : win ? (G.nm ? 'Você atravessou o pesadelo inteiro e venceu o Anhangá.' : 'Você atravessou a noite inteira.') : 'Ainda faltavam ' + fmt(RUN - t) + ' para o amanhecer.';
   $('#over-stats').innerHTML = `<span>Tempo</span><span>${fmt(t)}</span><span>Nível</span><span>${player.level}</span><span>Abates</span><span>${G.kills}</span><span>Rapaduras ganhas</span><span>${earned}</span>`;
-  const dm = Object.entries(G.dmg).sort((a, b) => b[1] - a[1]), mx = dm.length ? dm[0][1] : 1;
+  const dm = Object.entries(G.dmg).filter(([k]) => WEAPONS[k]).sort((a, b) => b[1] - a[1]), mx = dm.length ? dm[0][1] : 1;
   const fmtN = v => v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + ' mil' : String(Math.round(v));
   $('#over-dmg').innerHTML = dm.length ? '<div class="dh">Dano por arma</div>' + dm.map(([k, v]) => { const w = player.weapons.find(x => x.id === k);
     return `<div class="drow"><img src="${icon(k)}" alt=""><span class="dn">${w && w.ev ? WEAPONS[k].evoName : WEAPONS[k].name}</span><span class="db"><i style="width:${(v / mx * 100).toFixed(1)}%"></i></span><span class="dv">${fmtN(v)}</span></div>`; }).join('') : '';
@@ -360,6 +371,10 @@ $('#rol-exit').onclick = () => { if (mode !== 'roleta') return; clearInterval(ro
 $('#abil').onclick = useAbility;
 $('#pausebtn').onclick = () => { pauseGame(); saveRun(); };
 $('#btn-nm').onclick = () => { const m = ['normal', 'pesadelo', 'infinito']; save.gmode = m[(m.indexOf(save.gmode) + 1) % 3]; persist(); sfx('ui'); renderChars(); };
+$('#btn-reroll').onclick = reroll;
+$('#btn-joy').onclick = () => { save.joyFix = !save.joyFix; persist(); sfx('ui'); renderMenu(); };
+$('#btn-err').onclick = () => { let t = ''; try { const er = JSON.parse(localStorage.getItem(ERR_KEY)); t = `Visagem ${er.v} ${er.t}\n${er.msg}\n${er.stack}\n${er.ua}`; } catch (e) {} const done = () => { toast('Erro copiado. Pode colar numa mensagem.'); try { localStorage.removeItem(ERR_KEY); } catch (e) {} renderMenu(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => { if (navigator.share) navigator.share({ text: t }).then(done, () => {}); }); else if (navigator.share) navigator.share({ text: t }).then(done, () => {}); };
 $('#btn-chest').onclick = () => { if (mode !== 'chest') return; sfx('ui'); hideScreens(); mode = 'play'; last = performance.now(); };
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});

@@ -6,8 +6,13 @@
    Sprites em texto, sons sintetizados, save no localStorage.
    ?speed=4 acelera o tempo para testes.
    ========================================================= */
+// guarda o último erro para o jogador poder copiar e mandar
+const ERR_KEY = 'visagem-err';
+function logErr(msg, stack) { try { localStorage.setItem(ERR_KEY, JSON.stringify({ msg: String(msg).slice(0, 300), stack: String(stack || '').slice(0, 900), t: new Date().toISOString(), v: typeof VERSION !== 'undefined' ? VERSION : '?', ua: navigator.userAgent.slice(0, 120) })); } catch (e) {} }
+addEventListener('error', e => logErr(e.message, e.error && e.error.stack));
+addEventListener('unhandledrejection', e => logErr(e.reason && e.reason.message || e.reason, e.reason && e.reason.stack));
 const TITLE = 'VISAGEM';
-const MAPW = 9600, MAPH = 6400, RUN = 900; // 15 minutos
+const MAPW = 9600, MAPH = 6400, RUN = 1800; // 30 minutos
 const SPEED = Math.max(1, Math.min(10, +new URLSearchParams(location.search).get('speed') || 1));
 const $ = s => document.querySelector(s);
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -277,6 +282,7 @@ function noise(t, dur, vol, freq) {
 }
 const SFX = {
   hit: t => noise(t, 0.05, 0.22, 2600),
+  crit: t => { noise(t, 0.06, 0.25, 4200); tone(t, 'square', 1760, 2400, 0.06, 0.05); },
   pick: t => tone(t, 'square', 880, 1320, 0.05, 0.06),
   lvl: t => [523, 659, 784, 1046].forEach((f, i) => tone(t + i * 0.07, 'square', f, 0, 0.12, 0.1)),
   hurt: t => tone(t, 'sawtooth', 220, 90, 0.18, 0.16),
@@ -295,7 +301,7 @@ const SFX = {
   warn: t => { tone(t, 'sine', 110, 0, 0.6, 0.18); tone(t + 0.7, 'sine', 110, 0, 0.6, 0.18); },
   aboio: t => { tone(t, 'sawtooth', 196, 294, 0.35, 0.12); tone(t + 0.3, 'sawtooth', 294, 220, 0.4, 0.1); },
 };
-const SFX_GAP = { aboio: 0.3, zap: 0.06, splash: 0.1, hit: 0.045, pick: 0.035, boom: 0.08, swing: 0.06, shoot: 0.05, tp: 0.1 };
+const SFX_GAP = { crit: 0.08, aboio: 0.3, zap: 0.06, splash: 0.1, hit: 0.045, pick: 0.035, boom: 0.08, swing: 0.06, shoot: 0.05, tp: 0.1 };
 function sfx(name) {
   if (!AC || !save.sound || AC.state !== 'running') return;
   const now = AC.currentTime; if (lastSfx[name] && now - lastSfx[name] < (SFX_GAP[name] || 0.02)) return;

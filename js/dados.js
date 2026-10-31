@@ -77,7 +77,7 @@ const ACH = {
   lobisomem: { name: 'Caçador de Lobisomem', desc: 'Derrote o Lobisomem.', reward: 'Libera a Forrozeira' },
   evolui:    { name: 'Evolução', desc: 'Evolua uma arma.', reward: '+30 rapaduras', rap: 30 },
   mil:       { name: 'Mil Visagens', desc: 'Derrote 1.000 inimigos numa noite.', reward: '+50 rapaduras', rap: 50 },
-  amanhecer: { name: 'Amanhecer', desc: 'Sobreviva os 15 minutos.', reward: '+100 rapaduras, a Benzedeira e os modos Pesadelo e Infinito', rap: 100 },
+  amanhecer: { name: 'Amanhecer', desc: 'Sobreviva os 30 minutos da noite.', reward: '+100 rapaduras, a Benzedeira e os modos Pesadelo e Infinito', rap: 100 },
   pesadelo:  { name: 'Pesadelo Vencido', desc: 'Vença a noite no Modo Pesadelo.', reward: '+200 rapaduras', rap: 200 },
 };
 const SHOP = {
@@ -141,14 +141,15 @@ function wbase(id, l, ev) {
     case 'rojao':     s = { dmg: 16 + 3.6 * (l - 1), cd: 2.6 - 0.1 * l, n: 1 + Math.floor(l / 5), rad: 26 + 1.5 * l, area: 1 }; if (ev) { s.n += 1; s.rad *= 1.25; s.dmg *= 1.15; } break;
     case 'folhetos':  s = { dmg: 10 + 3.6 * (l - 1), n: 2 + Math.floor(l / 3), rad: 34 + 2 * l, spin: 2.6 + 0.1 * l, area: 1 }; if (ev) { s.n += 2; s.dmg *= 1.8; s.spin *= 1.3; s.rad *= 1.25; } break;
     case 'aboio':     s = { dmg: 13 + 5.5 * (l - 1), cd: 6.2 - 0.3 * l, rad: 55 + 4 * l, root: 0.6 + 0.05 * l, area: 1 }; if (ev) { s.rad *= 1.35; s.root += 0.8; s.dmg *= 1.4; } break;
-    case 'galo':      s = { dmg: 10 + 4 * (l - 1), n: 1 + Math.floor(l / 4), spd: 105 + 3 * l, tick: 0.4, area: 1 }; if (ev) { s.n += 1; s.dmg *= 1.4; s.spd *= 1.25; } break;
+    case 'galo':      s = { dmg: 14 + 5.5 * (l - 1), n: 1 + Math.floor(l / 3), spd: 110 + 3 * l, tick: 0.32, area: 1 }; if (ev) { s.n += 1; s.dmg *= 1.4; s.spd *= 1.25; } break;
     case 'facao':     s = { dmg: 10 + 3.4 * (l - 1), n: 1 + Math.floor(l / 4), rad: 38 + 2 * l, spin: 4 + 0.15 * l, area: 1 }; if (ev) { s.n += 1; s.dmg *= 1.5; s.rad *= 1.2; } break;
-    case 'bodoque':   s = { dmg: 9 + 3 * (l - 1), cd: 1.1 - 0.04 * l, n: 1 + Math.floor(l / 4), spd: 170, mud: 2.5 + 0.15 * l, area: 1 }; if (ev) { s.n += 1; s.mud *= 1.5; s.dmg *= 1.3; } break;
-    case 'matraca':   s = { dmg: 14 + 4.5 * (l - 1), cd: 2.2 - 0.08 * l, rad: 70 + 3 * l, arc: 0.55, area: 1 }; if (ev) { s.rad *= 1.3; s.arc = 0.8; s.dmg *= 1.4; } break;
+    case 'bodoque':   s = { dmg: 14 + 4.5 * (l - 1), cd: 0.95 - 0.04 * l, n: 1 + Math.floor(l / 3), spd: 170, mud: 2.5 + 0.15 * l, area: 1 }; if (ev) { s.n += 1; s.mud *= 1.5; s.dmg *= 1.3; } break;
+    case 'matraca':   s = { dmg: 20 + 6 * (l - 1), cd: 1.7 - 0.06 * l, rad: 78 + 3 * l, arc: 0.7, area: 1 }; if (ev) { s.rad *= 1.3; s.arc = 0.8; s.dmg *= 1.4; } break;
     case 'bumbo':     s = { dmg: 7 + 2 * (l - 1), cd: 2.8 - 0.1 * l, n: 1, rad: 60 + 5 * l, area: 1 }; if (ev) { s.n = 2; s.rad *= 1.4; s.dmg *= 1.4; } break;
     case 'candeeiro': s = { dmg: 14 + 2.4 * (l - 1), cd: 2.2 - 0.08 * l, n: 1 + Math.floor(l / 5), rad: 28 + 2 * l, spd: 95, area: 1 }; if (ev) { s.n += 1; s.rad *= 1.4; } break;
     case 'tarrafa':   s = { dmg: 9 + 3.2 * (l - 1), cd: 3.2 - 0.12 * l, n: 1 + Math.floor(l / 4), rad: 22 + 1.5 * l, root: 1.4 + 0.08 * l, area: 1 }; if (ev) { s.rad *= 1.5; s.root += 1.2; s.n += 1; } break;
     case 'berimbau':  s = { dmg: 7.5 + 2.3 * (l - 1), cd: 1.3 - 0.05 * l, n: 1 + Math.floor(l / 5), b: 2 + Math.floor(l / 3), area: 1 }; if (ev) { s.b += 4; s.dmg *= 1.25; } break;
+    default: s = WB2[id](l, ev);
   }
   return s;
 }

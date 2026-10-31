@@ -24,6 +24,7 @@ function updWeapons(dt) {
       if (w.hit.size > 600) w.hit.clear(); continue;
     }
     if (w.id === 'galo') { updGalos(w, s, dt); continue; }
+    if (UPD2[w.id]) { UPD2[w.id](w, s, dt); continue; }
     w.cd -= dt; if (w.cd > 0) continue; w.cd = s.cd; fire(w, s);
   }
 }
@@ -129,7 +130,7 @@ function fire(w, s) {
       sfx('shoot'); break;
     }
     case 'matraca': {
-      const fa = Math.atan2(player.fy, player.fx), R = s.rad * s.area; query(px, py, R + 12, Q);
+      const tg = nearest(px, py, s.rad * s.area + 20), fa = tg ? Math.atan2(tg.y - py, tg.x - px) : Math.atan2(player.fy, player.fx), R = s.rad * s.area; query(px, py, R + 12, Q);
       for (const e of Q) { if (!e.alive || e.d.prop) continue; const ex = e.x - px, ey = e.y - py, d = Math.hypot(ex, ey) || 1; if (d > R + e.r) continue; let da = Math.atan2(ey, ex) - fa; da = Math.atan2(Math.sin(da), Math.cos(da)); if (Math.abs(da) < s.arc) hurt(e, s.dmg, ex / d * 160, ey / d * 160, 'matraca'); }
       fx.push({ k: 'cone', a: fa, r: R, arc: s.arc, life: 0.22, max: 0.22 }); sfx('swing'); G.shake = Math.max(G.shake, 1); break;
     }
@@ -171,6 +172,7 @@ function fire(w, s) {
       }
       sfx('zap'); break;
     }
+    default: if (FIRE2[w.id]) FIRE2[w.id](w, s);
   }
 }
 function explode(x, y, R, dmg, src) {
@@ -197,7 +199,7 @@ function updProjs(dt) {
       if (q >= 1) { explode(p.tx, p.ty, p.rad, p.dmg); p.life = 0; }
     } else if (p.k === 'barro') {
       p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; query(p.x, p.y, 16, Q);
-      for (const e of Q) if (e.alive && !e.d.prop && dist2(p.x, p.y, e.x, e.y) < (e.r + p.r) ** 2) { hurt(e, p.dmg, p.vx * 0.12, p.vy * 0.12, 'bodoque'); muds.push({ x: p.x, y: p.y, r: 22 * p.area, life: p.mud }); p.life = 0; break; }
+      for (const e of Q) if (e.alive && !e.d.prop && dist2(p.x, p.y, e.x, e.y) < (e.r + p.r) ** 2) { hurt(e, p.dmg, p.vx * 0.12, p.vy * 0.12, 'bodoque'); query(p.x, p.y, 30, Q); for (const o of Q) if (o !== e && o.alive && !o.d.prop && dist2(p.x, p.y, o.x, o.y) < (14 * p.area + o.r) ** 2) hurt(o, p.dmg * 0.5, undefined, undefined, 'bodoque'); muds.push({ x: p.x, y: p.y, r: 22 * p.area, life: p.mud }); p.life = 0; break; }
     } else if (p.k === 'chama') {
       p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; query(p.x, p.y, 18, Q);
       let hit = p.life <= 0; for (const e of Q) if (e.alive && !e.d.prop && dist2(p.x, p.y, e.x, e.y) < (e.r + 3) ** 2) { hit = true; break; }
@@ -216,7 +218,7 @@ function updProjs(dt) {
       p.t += dt; const q = Math.min(1, p.t / p.T);
       p.x = p.sx + (p.tx - p.sx) * q; p.y = p.sy + (p.ty - p.sy) * q - Math.sin(Math.PI * q) * 40;
       if (q >= 1) { goos.push({ x: p.tx, y: p.ty, r: 18, life: 6 }); burst(p.tx, p.ty, '#9fe07a', 10); sfx('splash'); p.life = 0; }
-    }
+    } else if (PROJ2[p.k]) PROJ2[p.k](p, dt);
   }
   compact(projs, p => p.life > 0);
 }
@@ -231,12 +233,12 @@ function updPools(dt) {
 function updWaves(dt) {
   for (const w of waves) {
     w.r += 150 * dt; query(w.x, w.y, w.r + 16, Q);
-    for (const e of Q) { if (!e.alive || w.hit.has(e)) continue; const dx = e.x - w.x, dy = e.y - w.y, d = Math.hypot(dx, dy) || 1; if (Math.abs(d - w.r) < 6 + e.r) { w.hit.add(e); hurt(e, w.dmg, dx / d * 70, dy / d * 70, w.src || 'sanfona'); } }
+    for (const e of Q) { if (!e.alive || w.hit.has(e)) continue; const dx = e.x - w.x, dy = e.y - w.y, d = Math.hypot(dx, dy) || 1; if (Math.abs(d - w.r) < 6 + e.r) { w.hit.add(e); hurt(e, w.dmg, dx / d * 70, dy / d * 70, w.src === undefined ? 'sanfona' : w.src); } }
   }
   compact(waves, w => w.r < w.max);
 }
 function updFx(dt) {
-  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96; p.life -= dt; }
+  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96; p.life -= dt; if (p.life <= 0 && partPool.length < 600) partPool.push(p); }
   compact(parts, p => p.life > 0);
   for (const n of nums) { n.y -= 18 * dt; n.life -= dt; } compact(nums, n => n.life > 0);
   for (const f of fx) f.life -= dt; compact(fx, f => f.life > 0);

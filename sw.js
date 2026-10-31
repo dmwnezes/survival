@@ -1,7 +1,7 @@
 // Tudo vem da rede quando há internet (página e scripts juntos, nunca versões misturadas);
 // o cache só serve para jogar offline.
 const CACHE = 'visagem-v3';
-const JS = ['base', 'dados', 'extra', 'mundo', 'armas', 'jogo', 'desenho', 'telas'].map(n => './js/' + n + '.js');
+const JS = ['base', 'dados', 'conteudo', 'mundo', 'armas', 'jogo', 'desenho', 'telas', 'extra'].map(n => './js/' + n + '.js');
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', ...JS];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener('activate', e => {
