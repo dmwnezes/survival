@@ -166,8 +166,8 @@ Object.assign(EN, {
   anhanga:    { hp: 22000, spd: 46, dmg: 32, xp: 5, r: 14, spr: 'anhanga', boss: 1, scale: 0.9, col: '#e8eeff' },
 });
 BOSSES.push(
-  { t: 1020, type: 'fulozinha', name: 'A Comadre Fulozinha' },
-  { t: 1260, type: 'cabecadecuia', name: 'O Cabeça de Cuia' },
+  { t: 1140, type: 'fulozinha', name: 'A Comadre Fulozinha' },
+  { t: 1320, type: 'cabecadecuia', name: 'O Cabeça de Cuia' },
   { t: 1500, type: 'labatut', name: 'O Labatut' },
   { t: 1680, type: 'bestafera', name: 'A Besta-Fera' },
 );

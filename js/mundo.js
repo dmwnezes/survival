@@ -117,7 +117,7 @@ function num(x, y, v, set, crit) { if (nums.length > 90) nums.shift(); const n =
 /* ---------------- inimigos ---------------- */
 function spawnEnemy(type, x, y) {
   const d = EN[type];
-  const hm = (d.prop ? 1 : 1.8) * (d.boss ? (0.75 + 0.35 * G.adapt) * (1 + Math.max(0, G.time - 480) / 500) : d.seg || d.prop ? 1 : G.hpMult * (0.85 + 0.15 * G.adapt)) * (G.blood && !d.seg ? 1.3 : 1) * (G.nm && !d.seg ? (d.boss ? 1.5 : 1.6) : 1);
+  const hm = (d.prop ? 1 : 1.8) * (d.boss ? (0.75 + 0.35 * G.adapt) * (1 + Math.max(0, G.time - 600) / 600) : d.seg || d.prop ? 1 : G.hpMult * (0.85 + 0.15 * G.adapt)) * (G.blood && !d.seg ? 1.3 : 1) * (G.nm && !d.seg ? (d.boss ? 1.5 : 1.6) : 1);
   const e = { type, d, x, y, vx: 0, vy: 0, kx: 0, ky: 0, hp: d.hp * hm, r: d.r, spd: d.spd * (d.boss ? 1 : rand(0.88, 1.12)) * (G.blood ? 1.1 : 1), flash: 0, t: Math.random() * 9, cc: rand(1, 4), ch: 0, cdx: 0, cdy: 0, ang: 0, alive: true, root: 0, sc: d.scale || 1 };
   e.maxHp = e.hp; enemies.push(e); return e;
 }
@@ -328,9 +328,9 @@ function director(dt) {
     if (hr > 0.8) G.adapt = Math.min(1.8, G.adapt + 0.04);
     else if (hr < 0.45) G.adapt = Math.max(0.65, G.adapt - 0.12);
   }
-  // até os 15 min cresce em curva; depois segue subindo em linha até o fim dos 30 min
-  G.hpMult = 1 + t / 150 + (Math.min(t, 900) / 300) ** 2 + Math.max(0, t - 900) / 60;
-  const ramp = Math.min(1, 0.85 + t / 200), cap = Math.min(560, 60 + t / 2.2 + (t / 300) ** 2 * 25), rate = Math.min(40, 2.6 + t / 26 + (t / 300) ** 2 * 1.5) * G.adapt * ramp * (G.nm ? 1.3 : 1) * (1 + 0.12 * (player.pass.olhogordo || 0)); // começo ágil, mas com inimigos fracos
+  // curva esticada para a noite de 30 min: sobe sem parar até o amanhecer
+  G.hpMult = 1 + t / 200 + (t / 450) ** 2;
+  const ramp = Math.min(1, 0.75 + t / 160), cap = Math.min(560, 50 + t / 2.2 + (t / 300) ** 2 * 25), rate = Math.min(40, 2 + t / 26 + (t / 300) ** 2 * 1.5) * G.adapt * ramp * (G.nm ? 1.3 : 1) * (1 + 0.12 * (player.pass.olhogordo || 0)); // começo ágil, mas com inimigos fracos
   G.spawnAcc = Math.min(5, G.spawnAcc + rate * dt);
   while (G.spawnAcc >= 1 && enemies.length - G.nProps < cap) { G.spawnAcc -= 1; const [x, y] = edgePos(); spawnEnemy(pickType(m), x, y); }
   const sw = Math.floor(t / 60);
@@ -441,7 +441,7 @@ function updEnemies(dt) {
           break;
         case 'paimato':
           e.cc -= dt;
-          if (e.cc <= 0 && !G.dawn) { e.cc = 4.5; for (let i = 0; i < 2; i++) roots.push({ x: clamp(px + rand(-55, 55) + player.fx * 30, 10, MAPW - 10), y: clamp(py + rand(-40, 40) + player.fy * 30, 10, MAPH - 10), t: 0 }); }
+          if (e.cc <= 0 && !G.dawn) { e.cc = 5.5; for (let i = 0; i < 2; i++) roots.push({ x: clamp(px + rand(-55, 55) + player.fx * 30, 10, MAPW - 10), y: clamp(py + rand(-40, 40) + player.fy * 30, 10, MAPH - 10), t: 0 }); }
           break;
         case 'muricoca': vx += Math.sin(e.t * 9) * 30; vy += Math.cos(e.t * 8) * 30; break;
         case 'urubu': vx = e.cdx * e.spd; vy = e.cdy * e.spd; e.life -= dt; if (e.life <= 0) e.alive = false; break;
@@ -526,7 +526,7 @@ function kill(e) {
     G.evNext = Math.max(G.evNext || 0, G.time + 12); // respiro depois do chefão
     banner(e.bossName + ' caiu!'); G.shake = 6; sfx('boom');
   } else {
-    drop(e.x, e.y, 'xp', e.d.xp * (G.blood ? 2 : 1) * (inGrave(e.x, e.y) ? 2 : 1));
+    drop(e.x, e.y, 'xp', e.d.xp * 1.8 * (G.blood ? 2 : 1) * (inGrave(e.x, e.y) ? 2 : 1)); // vida ×1,8 → XP ×1,8: mesmo ritmo de níveis
     if (e.elite) { drop(e.x + 6, e.y, 'bau', 1); burst(e.x, e.y, '#f2c14e', 20, true); }
     const r = Math.random(), L = player.st.luck;
     if (r < 0.004 * L) drop(e.x, e.y, 'cuscuz', 30); else if (r < 0.012 * L) drop(e.x, e.y, 'rap', 1);

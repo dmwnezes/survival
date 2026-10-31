@@ -101,7 +101,7 @@ const EN = {
   leitao:     { hp: 14, spd: 64, dmg: 3, xp: 1, r: 4, spr: 'leitao', col: '#d99a8a' },
   cavaleiro:  { hp: 320, spd: 110, dmg: 10, xp: 8, r: 8, spr: 'cavaleiro', col: '#6e2420' },
   mapinguari: { hp: 3000, spd: 26, dmg: 16, xp: 5, r: 15, spr: 'mapinguari', boss: 1, scale: 0.95, col: '#6b4a2e' },
-  paimato:    { hp: 2200, spd: 30, dmg: 18, xp: 5, r: 14, spr: 'paimato', boss: 1, scale: 0.95, col: '#3d6b33' },
+  paimato:    { hp: 1800, spd: 30, dmg: 18, xp: 5, r: 14, spr: 'paimato', boss: 1, scale: 0.95, col: '#3d6b33' },
   caipora:    { hp: 400, spd: 140, dmg: 14, xp: 8, r: 9, spr: 'caipora', fly: 1, col: '#e8832a' },
   iara:       { hp: 80, spd: 0, dmg: 6, xp: 5, r: 6, spr: 'iara', col: '#5fd4ff' },
   cabra:      { hp: 30, spd: 32, dmg: 5, xp: 3, r: 6, spr: 'cabra', col: '#d8d4c4' },
@@ -120,11 +120,11 @@ const EN = {
 };
 const BOSSES = [
   { t: 300, type: 'lobisomem', name: 'O Lobisomem' },
-  { t: 390, type: 'paimato', name: 'O Pai do Mato' },
-  { t: 510, type: 'mapinguari', name: 'O Mapinguari' },
-  { t: 600, type: 'corposeco', name: 'O Corpo-Seco' },
-  { t: 720, type: 'cuca', name: 'A Cuca' },
-  { t: 840, type: 'boitata', name: 'O Boitatá' },
+  { t: 450, type: 'paimato', name: 'O Pai do Mato' },
+  { t: 600, type: 'mapinguari', name: 'O Mapinguari' },
+  { t: 720, type: 'corposeco', name: 'O Corpo-Seco' },
+  { t: 840, type: 'cuca', name: 'A Cuca' },
+  { t: 960, type: 'boitata', name: 'O Boitatá' },
 ];
 
 function need(l) { return 5 + Math.round(l * 3.5 + l * l * 0.05 + Math.max(0, l - 25) ** 2 * 0.3); } // níveis altos custam mais: o XP abundante do fim da noite não dispara o poder

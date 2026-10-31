@@ -80,7 +80,7 @@ function updWorld(dt) {
   for (const st of stars) { st.t += dt; if (st.t >= 1.4) { st.done = true; drop(st.x, st.y, 'bau', 1); burst(st.x, st.y, '#fff6a0', 30, true); G.shake = Math.max(G.shake, 3); sfx('boom'); } }
   compact(stars, st => !st.done);
   G.stun = Math.max(0, (G.stun || 0) - dt);
-  for (const r of roots) { r.t += dt; if (!r.hit && r.t >= 0.9) { r.hit = true; if (dist2(r.x, r.y, player.x, player.y) < 18 * 18 && player.inv <= 0) { G.stun = Math.max(G.stun, 1); toast('As raízes do Pai do Mato te prenderam!'); } } }
+  for (const r of roots) { r.t += dt; if (!r.hit && r.t >= 0.9) { r.hit = true; if (dist2(r.x, r.y, player.x, player.y) < 18 * 18 && player.inv <= 0) { G.stun = Math.max(G.stun, 0.6); toast('As raízes do Pai do Mato te prenderam!'); } } }
   compact(roots, r => r.t < 2.6);
   for (const m of muds) m.life -= dt; compact(muds, m => m.life > 0);
   for (const fr of fires) {

@@ -165,6 +165,9 @@ function rollOptions() {
   for (const fu of FUSIONS) { const A = p.weapons.find(w => w.id === fu.a && w.ev), B = p.weapons.find(w => w.id === fu.b && w.ev); if (A && B) pool.push({ k: 'fuse', f: fu }); }
   const pc = Object.keys(p.pass).length;
   for (const id in PASSIVES) { const l = p.pass[id] || 0; if (l > 0 && l < PASSIVES[id].max) pool.push({ k: 'pup', id, w: 2 }); else if (l === 0 && pc < SLOTS) pool.push({ k: 'pnew', id, w: 1.5 }); }
+  // com muitas armas e itens no jogo, as novidades não podem abafar as melhorias do que você já tem
+  const nW = pool.filter(o => o.k === 'wnew').length, nP = pool.filter(o => o.k === 'pnew').length;
+  for (const o of pool) { if (o.k === 'wnew' && nW > 8) o.w = 2 * 8 / nW; if (o.k === 'pnew' && nP > 8) o.w = 1.5 * 8 / nP; }
   const n = (save.up.escolha ? 4 : 3) + (Math.random() < 0.1 * (p.pass.ferradura || 0) ? 1 : 0), out = pool.filter(o => o.k === 'evo' || o.k === 'fuse'), rest = pool.filter(o => o.k !== 'evo' && o.k !== 'fuse');
   while (out.length < n && rest.length) {
     let tot = 0; for (const o of rest) tot += o.w; let r = Math.random() * tot, i = 0;
