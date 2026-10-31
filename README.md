@@ -24,6 +24,13 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 - Rio com pontes, poço dos desejos, estrelas cadentes, chuva de cajus e moradores para proteger no vilarejo
 - Benzedeira (4ª personagem), níveis de personagem, armas douradas com 5.000 abates, golpes críticos
 - Modo Infinito, dança da vitória e dicas no menu
+- Inimigos Lambisgoia, Velha de branco, Porca dos sete leitões e Cavaleiro sem cabeça; chefões Pai do Mato (6:30) e Mapinguari (8:30)
+- Hordas em formação, fogo no mato e romaria de almas
+- Armas Facão de Mato, Bodoque de Barro e Matraca; fusões lendárias de armas evoluídas
+- Escolha do caminho de evolução dentro do baú
+- Dois vilarejos, cemitérios, casas de farinha, estradas e rio sorteado a cada noite
+- Figurinhas das lendas e Prestígio
+- Minimapa em radar, com setas para o que importa
 - 3 personagens: Vaqueiro, Pescador e Forrozeira (liberados por conquista ou rapadura)
 - 11 armas com evolução: Chapéu de Couro, Peixeira, Baladeira, Sanfona, Fogueira de São João, Rojão, Tarrafa, Berimbau, Cordel Mágico, Aboio e Galo de Briga
 - 11 itens passivos, incluindo Cachaça de Alambique, Ferradura, Lampião a Gás e Fitinha do Bonfim (salva da morte uma vez)
