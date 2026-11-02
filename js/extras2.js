@@ -15,7 +15,7 @@ function UP() { return MAP === 'praia' ? (save.upP = save.upP || {}) : save.up; 
   BOSSES.length = 0;
   slots.forEach((slot, i) => { if (i === last) { BOSSES.push(Object.assign({}, slot)); return; } const ty = G.sb[i], src = slots.find(b => b.type === ty); BOSSES.push({ t: slot.t, type: ty, name: src.name, mul: EN[slot.type].hp / EN[ty].hp, dmul: EN[slot.type].dmg / EN[ty].dmg }); });
 }; }
-{ const sb0 = spawnBoss; window.spawnBoss = b => { sb0(b); if (b.dmul && G.boss) G.boss.dmul = b.dmul; }; }
+{ const sb0 = spawnBoss; window.spawnBoss = b => { sb0(b); if (b.dmul && G.boss) G.boss.d = Object.assign({}, G.boss.d, { dmg: G.boss.d.dmg * b.dmul }); }; } // cópia dos dados: golpes especiais também usam o dano do horário
 
 /* ---------------- sequência sem tomar dano ---------------- */
 { const h0 = EXH.onHit; EXH.onHit = (dmg, src) => { h0(dmg, src); if (G.streak >= 25) toast('Sequência perdida: ' + G.streak); G.streak = 0; }; }
