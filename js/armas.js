@@ -30,18 +30,18 @@ function updWeapons(dt) {
 }
 function useAbility() {
   if (mode !== 'play' || !G || G.abCd > 0 || G.dawn) return;
-  const c = CHARS[player.char], px = player.x, py = player.y, D = player.st.dmg; G.abCd = c.abCd * (1 - 0.15 * (player.pass.cuia || 0));
-  if (c.ab === 'jangada') { PRAIA.jangadaAb(); return; }
+  const c = CHARS[player.char], px = player.x, py = player.y, AP = 1 + 0.06 * clvl(player.char), D = player.st.dmg * AP; G.abCd = c.abCd * (1 - 0.15 * (player.pass.cuia || 0)) * (1 - 0.02 * clvl(player.char)); // habilidade cresce com o nível do personagem
+  if (c.ab === 'jangada') { PRAIA.jangadaAb(AP); return; }
   if (c.ab === 'laco') {
     query(px, py, 130, Q); let n = 0;
     for (const e of Q.slice().sort((a, b) => dist2(a.x, a.y, px, py) - dist2(b.x, b.y, px, py))) {
       if (!e.alive || e.d.prop || n >= 12) continue; const dx = px - e.x, dy = py - e.y, d = Math.hypot(dx, dy) || 1; if (d > 130) continue;
-      n++; const t = e.parent || e; t.root = Math.max(t.root, 1); if (!t.d.boss) { e.kx += dx / d * 260; e.ky += dy / d * 260; }
+      n++; const t = e.parent || e; t.root = Math.max(t.root, 1 * AP); if (!t.d.boss) { e.kx += dx / d * 260; e.ky += dy / d * 260; }
       fx.push({ k: 'laco', x: e.x, y: e.y, life: 0.25, max: 0.25 }); hurt(e, 15 * D);
     }
     sfx('swing');
   } else if (c.ab === 'benzer') {
-    player.hp = Math.min(player.maxHp, player.hp + 35); player.inv = Math.max(player.inv, 1.5); query(px, py, 80, Q); for (const e of Q) if (e.alive && !e.d.prop && !e.d.boss) { const dx = e.x - px, dy = e.y - py, d = Math.hypot(dx, dy) || 1; if (d < 70) { e.kx += dx / d * 200; e.ky += dy / d * 200; } } fx.push({ k: 'aboio', r: 70, life: 0.45, max: 0.45 }); burst(px, py, '#86d46f', 20, true); sfx('lvl');
+    player.hp = Math.min(player.maxHp, player.hp + 35 * AP); player.inv = Math.max(player.inv, 1.5); query(px, py, 80, Q); for (const e of Q) if (e.alive && !e.d.prop && !e.d.boss) { const dx = e.x - px, dy = e.y - py, d = Math.hypot(dx, dy) || 1; if (d < 70) { e.kx += dx / d * 200; e.ky += dy / d * 200; } } fx.push({ k: 'aboio', r: 70, life: 0.45, max: 0.45 }); burst(px, py, '#86d46f', 20, true); sfx('lvl');
   } else if (c.ab === 'mergulho') {
     player.inv = Math.max(player.inv, 1.5); G.dive = 1.5;
     query(px, py, 130, Q); for (const e of Q) if (e.alive && !e.d.prop && dist2(e.x, e.y, px, py) < 120 * 120) { const t = e.parent || e; t.root = Math.max(t.root, 1.2); }

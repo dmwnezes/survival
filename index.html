@@ -117,6 +117,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 .drow .db i{display:block;height:100%;background:var(--acc)}
 .drow .dv{width:4.6em;text-align:right;color:var(--moon)}
 #buffs{color:var(--acc);font-size:18px}
+#streak{color:var(--green);font-size:17px}
 .card{position:relative;background:#182050;box-shadow:inset 0 0 0 2px #0a0e26,inset 0 0 0 4px rgba(242,193,78,.14),5px 5px 0 rgba(0,0,0,.45)}
 .card::before,.card::after{content:'';position:absolute;top:-6px;width:9px;height:9px;background:var(--line);transform:rotate(45deg)}
 .card::before{left:-6px}.card::after{right:-6px}
@@ -181,6 +182,11 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 .menu-grid{gap:12px;max-width:min(600px,92vw)}
 #statlist{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:66vh}
 #statlist .item{padding:6px 12px}
+#mislist .item{padding:6px 12px}#mislist .item .tx b{font-size:22px}
+#shoplist{display:grid;grid-template-columns:1fr 1fr;width:min(900px,94vw);gap:6px}
+#shoplist .item{padding:6px 10px;font-size:17px;gap:8px}#shoplist .item .tx b{font-size:20px}#shoplist .item .btn{min-width:0;padding:4px 10px}
+#shoplist .tabs{grid-column:1/-1;justify-content:center}#shoplist .wide{grid-column:1/-1}
+@media (max-width:620px){#shoplist{grid-template-columns:1fr}}
 .menu-grid .btn{min-width:170px;font-size:clamp(19px,4.6vh,26px)}
 .item .tx span{display:block}
 .char .skin{font-size:18px;margin-top:6px}
@@ -198,6 +204,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
   <div id="nextboss"></div>
   <div id="stats">
     <span id="kills">0 abates</span>
+    <span id="streak"></span>
     <span class="rapbox"><img data-ico="rap" alt=""><span id="hud-rap">0</span></span>
     <span id="buffs"></span>
     <button id="pausebtn" aria-label="Pausar">II</button>
@@ -217,6 +224,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
       <div class="row menu-grid">
         <button class="btn ghost" data-go="shop">Loja</button>
         <button class="btn ghost" data-go="ach">Conquistas</button>
+        <button class="btn ghost" data-go="missoes">Missões</button>
         <button class="btn ghost" data-go="mais">Mais</button>
       </div>
     </div>
@@ -279,6 +287,13 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
     <h2>Meia-noite passou</h2>
     <p class="sub" id="rest-sub"></p>
     <div id="rest-opts" class="row"></div>
+  </section>
+
+  <section id="s-missoes" class="screen">
+    <h2>Missões do dia</h2>
+    <p class="sub" id="mis-sub"></p>
+    <div id="mislist" class="list"></div>
+    <button class="btn ghost small" data-go="menu">Voltar</button>
   </section>
 
   <section id="s-notes" class="screen">
@@ -349,5 +364,6 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 <script src="js/telas.js?v=5"></script>
 <script src="js/extra.js?v=5"></script>
 <script src="js/praia.js?v=5"></script>
+<script src="js/extras2.js?v=5"></script>
 </body>
 </html>

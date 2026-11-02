@@ -68,7 +68,7 @@ function newPlayer(ch) {
     pet: save.pet && save.pets[save.pet] ? { k: save.pet, x: MAPW / 2 - 12, y: MAPH / 2 + 8, cd: 0, t: null, dive: 0 } : null };
 }
 function recalc() {
-  const p = player, pv = p.pass, up = save.up, ch = CHARS[p.char];
+  const p = player, pv = p.pass, up = UP(), ch = CHARS[p.char];
   p.st = {
     dmg: (G && G.restDmg ? 1.15 : 1) * (1 + 0.05 * (save.prest || 0)) * (1 + 0.1 * (pv.pimenta || 0)) * (1 + 0.05 * (up.forca || 0)) * (1 + 0.25 * (pv.cachaca || 0)) * (1 + 0.02 * clvl(p.char)),
     luck: 1 + 0.25 * (pv.ferradura || 0),
@@ -262,7 +262,7 @@ function spawnBoss(b) {
 }
 // Diretor de eventos: um evento grande por vez, com folga entre eles, nunca perto de chefão, chuva ou defesa do vilarejo.
 const EVENTS = {
-  carro:   { first: 90,  every: [110, 150], run: () => spawnCart() },
+  carro:   { first: 60,  every: [65, 95], run: () => spawnCart() },
   estrela: { first: 125, every: [95, 130], run: () => spawnStar() },
   vento:   { first: 160, every: [90, 120], run: () => spawnWhirl() },
   galinha: { first: 185, every: [160, 220], run: () => spawnHen() },
@@ -482,7 +482,7 @@ function updEnemies(dt) {
     }
     const rr = e.r + player.r;
     if (!e.hide && dist2(px, py, e.x, e.y) < rr * rr) {
-      const hp0 = player.hp; playerHit(e.d.dmg * dm * (e.elite ? 1.5 : 1), e);
+      const hp0 = player.hp; playerHit(e.d.dmg * dm * (e.elite ? 1.5 : 1) * (e.dmul || 1), e);
       if (player.hp < hp0 && ((e.type === 'cabra' && e.ch > 0) || e.type === 'caipora')) { const d = Math.hypot(px - e.x, py - e.y) || 1; player.kx += (px - e.x) / d * 150; player.ky += (py - e.y) / d * 150; if (e.type === 'cabra') e.ch = 0; }
     }
   }
@@ -502,6 +502,7 @@ function deathFx(e) {
 }
 function hurt(e, dmg, kx, ky, src) {
   const t = e.parent || e; if (!t.alive || !e.alive || e.hide) return;
+  if (t.d.tree) { EXH.tree(t); return; } // coqueiro: solta coco em vez de tomar dano
   let crit = false; dmg = EXH.hurtMul(t, dmg);
   if (src) { t.lastSrc = src; if (save.gold[src]) dmg *= 1.1; if (Math.random() < 0.05 + 0.02 * (player.pass.ferradura || 0) + EXH.critChance()) { dmg *= EXH.critMul(); crit = true; } }
   if (src) G.dmg[src] = (G.dmg[src] || 0) + dmg;
@@ -547,7 +548,7 @@ function playerHit(dmg, src) {
   EXH.onHit(dmg, src);
   if (player.hp <= 0) {
     if (player.pass.fitinha && !G.fita) { G.fita = true; player.hp = player.maxHp * 0.3; player.inv = 2; toast('A fitinha do Bonfim arrebentou!'); burst(player.x, player.y, '#f2c14e', 24, true); }
-    else if (save.up.reviver && !G.revived) {
+    else if (UP().reviver && !G.revived) {
       G.revived = true; player.hp = player.maxHp * 0.5; player.inv = 2; toast('Você levantou de novo!');
       for (const e of enemies) if (e.alive && !e.d.boss && !e.d.seg && dist2(e.x, e.y, player.x, player.y) < 90 * 90) kill(e);
       burst(player.x, player.y, '#f4e7b6', 30, true);
@@ -572,7 +573,7 @@ function updItems(dt) {
 function collect(it) {
   if (it.kind === 'xp') { addXp(it.v); sfx('pick'); }
   else if (it.kind === 'rap') { G.rap += it.v; sfx('coin'); num(player.x, player.y - 12, it.v, DY); }
-  else if (it.kind === 'bau') { G.pendingChest++; sfx('coin'); }
+  else if (it.kind === 'bau') { G.pendingChest++; sfx('coin'); EXH.onBau(); }
   else if (PWK.has(it.kind)) powerUp(it.kind);
   else { const v = it.v * EXH.foodMul(), h = Math.min(v, player.maxHp - player.hp); player.hp += h; sfx('coin'); num(player.x, player.y - 12, v, DG); }
 }

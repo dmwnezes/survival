@@ -102,7 +102,7 @@ function updWorld(dt) {
   G.wet = clamp((G.wet || 0) + (G.rain > 0 ? dt / 8 : -dt / 40), 0, 1);
   if (G.rain > 0) { G.boltT = (G.boltT == null ? 4 : G.boltT) - dt; if (G.boltT <= 0) { G.boltT = rand(4, 9); G.flash = 1; sfx('thunder'); } }
   G.flash = Math.max(0, (G.flash || 0) - dt * 4);
-  if (G.dive > 0) { G.dive -= dt; if (G.dive <= 0) { query(player.x, player.y, 76, Q); for (const e of Q) if (e.alive && dist2(e.x, e.y, player.x, player.y) < (60 + e.r) ** 2) hurt(e, 35 * player.st.dmg, (e.x - player.x) * 4, (e.y - player.y) * 4); fx.push({ k: 'boom', x: player.x, y: player.y, r: 60, life: 0.3, max: 0.3 }); burst(player.x, player.y, '#7fb2e5', 24); sfx('splash'); } }
+  if (G.dive > 0) { G.dive -= dt; if (G.dive <= 0) { query(player.x, player.y, 76, Q); for (const e of Q) if (e.alive && dist2(e.x, e.y, player.x, player.y) < (60 + e.r) ** 2) hurt(e, 35 * player.st.dmg * (1 + 0.06 * clvl(player.char)), (e.x - player.x) * 4, (e.y - player.y) * 4); fx.push({ k: 'boom', x: player.x, y: player.y, r: 60, life: 0.3, max: 0.3 }); burst(player.x, player.y, '#7fb2e5', 24); sfx('splash'); } }
   if (!G.finalUsed && flatW().length >= SLOTS && player.weapons.every(w => w.ev)) { G.finalUsed = true; G.finalT = 30; banner('FORMA FINAL!'); sfx('win'); G.shake = 6; }
   if (G.cang > 0) {
     G.cang -= dt; G.cangT -= dt;

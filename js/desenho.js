@@ -346,7 +346,7 @@ function drawTitle() { // tela inicial: vaqueiro na fogueira, lua passando, visa
 function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   if (mode === 'cutscene' && cut) { drawCut(); return; }
-  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach' && mode !== 'stats' && mode !== 'figs' && mode !== 'notes' && mode !== 'mais' && mode !== 'maps');
+  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach' && mode !== 'stats' && mode !== 'figs' && mode !== 'notes' && mode !== 'mais' && mode !== 'maps' && mode !== 'missoes');
   if (!inRun) { drawTitle(); return; }
   let cx, cy;
   cx = player.x; cy = player.y;

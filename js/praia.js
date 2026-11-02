@@ -399,7 +399,7 @@ SFX.onda = t => noise(t, 1.5, 0.1, 480);
 SFX.gaivota = t => { tone(t, 'sine', 1900, 1250, 0.14, 0.035); tone(t + 0.2, 'sine', 1750, 1150, 0.18, 0.035); };
 { const w0 = EXH.world; EXH.world = dt => { w0(dt); if (MAP === 'praia') EXH.praia(dt); }; }
 { const r0 = EXH.reset; EXH.reset = () => { r0(); strikes.length = boats.length = shoals.length = pships.length = pools2.length = 0; }; }
-PRAIA.jangadaAb = () => { G.boat = 4; player.inv = Math.max(player.inv, 4); burst(player.x, player.y, '#7fb2e5', 16); sfx('splash'); };
+PRAIA.jangadaAb = (AP) => { const T = 4 * (AP || 1); G.boat = T; player.inv = Math.max(player.inv, T); burst(player.x, player.y, '#7fb2e5', 16); sfx('splash'); };
 
 /* ---------------- mundo da praia: desenho ---------------- */
 PRAIA.drawSea = () => {
@@ -434,11 +434,11 @@ PRAIA.drawSea = () => {
   g0();
 }; }
 { const gl0 = EXH.drawGlow; EXH.drawGlow = () => { gl0(); if (MAP !== 'praia') return;
-  for (const k of EXW.marks) if (k.k === 'farol' && onScreen(k.x, k.y, 400)) { const a = G.time * 0.8, lx = k.x, ly = k.y - 34; ctx.fillStyle = 'rgba(255,240,180,0.12)'; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + Math.cos(a - 0.12) * 320, ly + Math.sin(a - 0.12) * 200); ctx.lineTo(lx + Math.cos(a + 0.12) * 320, ly + Math.sin(a + 0.12) * 200); ctx.closePath(); ctx.fill(); circle(lx, ly, 6, 'rgba(255,240,180,0.6)'); }
+  for (const k of EXW.marks) if (k.k === 'farol' && onScreen(k.x, k.y, 400) && !(G.storm > 0)) { const a = G.time * 0.8, lx = k.x, ly = k.y - 34; ctx.fillStyle = 'rgba(255,240,180,0.12)'; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + Math.cos(a - 0.12) * 320, ly + Math.sin(a - 0.12) * 200); ctx.lineTo(lx + Math.cos(a + 0.12) * 320, ly + Math.sin(a + 0.12) * 200); ctx.closePath(); ctx.fill(); circle(lx, ly, 6, 'rgba(255,240,180,0.6)'); }
   for (const e of enemies) if ((e.type === 'aguaviva' || e.type === 'batatao') && onScreen(e.x, e.y, 20)) circle(e.x, e.y, 8, e.type === 'batatao' ? 'rgba(255,170,60,0.35)' : 'rgba(200,140,255,0.3)');
   for (const b of boats) circle(b.x, b.y - 13, 6, 'rgba(255,240,160,0.4)'); }; }
 { const l0 = EXH.lightHoles; EXH.lightHoles = hole => { l0(hole); if (MAP !== 'praia') return;
-  for (const k of EXW.marks) if (k.k === 'farol') { hole(k.x, k.y - 34, 50, 0.8); const a = G.time * 0.8; for (let i = 1; i <= 4; i++) hole(k.x + Math.cos(a) * 60 * i, k.y - 34 + Math.sin(a) * 38 * i, 22 + i * 6, 0.35); } else if (k.k === 'barraca' || k.k === 'barforro') hole(k.x, k.y, 46, 0.5);
+  for (const k of EXW.marks) if (k.k === 'farol') { if (G.storm > 0) continue; hole(k.x, k.y - 34, 50, 0.8); const a = G.time * 0.8; for (let i = 1; i <= 4; i++) hole(k.x + Math.cos(a) * 60 * i, k.y - 34 + Math.sin(a) * 38 * i, 22 + i * 6, 0.35); } else if (k.k === 'barraca' || k.k === 'barforro') hole(k.x, k.y, 46, 0.5);
   for (const e of enemies) if ((e.type === 'aguaviva' || e.type === 'batatao') && e.alive && onScreen(e.x, e.y, 20)) hole(e.x, e.y, 18, 0.45);
   for (const b of boats) hole(b.x, b.y - 13, 26, 0.55); for (const sh of pships) hole(sh.x, sh.y, 40, 0.4); }; }
 PRAIA.mini = (mx, my, ox, oy, RW, RH) => { ctx.fillStyle = '#163a5c'; ctx.beginPath(); ctx.moveTo(mx(ox - 50), my(oy - 50)); for (let x = ox - 50; x <= ox + RW + 100; x += 100) ctx.lineTo(mx(x), my(seaY(x))); ctx.lineTo(mx(ox + RW + 100), my(oy - 50)); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#3a4258'; for (const s of islands) { ctx.beginPath(); ctx.ellipse(mx(s.x), my(s.y), Math.max(1, s.rx * (70 / RW)), Math.max(1, s.ry * (70 / RW)), 0, 0, 6.283); ctx.fill(); } };

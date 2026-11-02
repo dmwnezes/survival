@@ -6,11 +6,11 @@ function fmt(t) { t = Math.floor(t); return String(Math.floor(t / 60)).padStart(
 function updHUD() {
   $('#xpfill').style.width = (player.xp / player.next * 100).toFixed(1) + '%';
   setText('#lvl', 'Nv ' + player.level); setText('#timer', fmt(Math.min(G.time, RUN)));
-  setText('#kills', G.kills + (G.kills === 1 ? ' abate' : ' abates')); setText('#hud-rap', String(G.rap));
+  setText('#kills', G.kills + (G.kills === 1 ? ' abate' : ' abates')); setText('#streak', G.streak >= 25 ? 'Sequência ' + G.streak : ''); setText('#hud-rap', String(G.rap));
   const bf = G.nm ? ['Pesadelo'] : []; if (G.buff > 0) bf.push('Fogo ' + Math.ceil(G.buff) + 's'); if (G.ride > 0) bf.push('Carona ' + Math.ceil(G.ride) + 's'); if (G.confuse > 0) bf.push('Confuso'); if (G.slow > 0) bf.push('Lento');
   if (G.altar) bf.push(G.altar.short + ' ' + Math.ceil(G.altar.t) + 's'); if (G.cang > 0) bf.push('Cangaceiro ' + Math.ceil(G.cang) + 's'); if (G.inf) bf.push('Infinito'); { const dv = defV(); if (dv) bf.push('Moradores ' + Math.ceil(dv.def) + 's'); } if (G.farinha > 0) bf.push('Farinha ' + Math.ceil(G.farinha) + 's'); if (G.stun > 0) bf.push('Preso'); if (G.giant > 0) bf.push('Gigante ' + Math.ceil(G.giant) + 's'); if (G.finalT > 0) bf.push('Forma final ' + Math.ceil(G.finalT) + 's'); if (G.sand) bf.push('Areia'); if (G.moon > 0) bf.push('Lua cheia ' + Math.ceil(G.moon) + 's'); if (G.esp > 0) bf.push('Espora +' + Math.round(G.esp) + '%');
   setText('#buffs', bf.join(' '));
-  const cdMax = CHARS[player.char].abCd * (1 - 0.15 * (player.pass.cuia || 0)), cdk = Math.max(0, G.abCd) / cdMax; $('#abil-cd').style.height = (cdk * 100).toFixed(0) + '%'; $('#abil').classList.toggle('cool', cdk > 0);
+  const cdMax = CHARS[player.char].abCd * (1 - 0.15 * (player.pass.cuia || 0)) * (1 - 0.02 * clvl(player.char)), cdk = Math.max(0, G.abCd) / cdMax; $('#abil-cd').style.height = (cdk * 100).toFixed(0) + '%'; $('#abil').classList.toggle('cool', cdk > 0);
   const b = G.boss && G.boss.alive ? G.boss : null; $('#bossbar').style.display = b ? 'block' : 'none';
   if (b) { setText('#bossname', b.bossName); $('#bossfill').style.width = Math.max(0, b.hp / b.maxHp * 100) + '%'; }
   const nb = b || G.dawn ? null : BOSSES.find(x => !G.bossDone[x.type] && x.t > G.time); const alert = nb && nb.t - G.time < 90 && !G.inf; setText('#nextboss', alert ? 'Chefão em ' + fmt(nb.t - G.time) : G.dawn ? '' : PHASES[EXH.phase()].name); $('#nextboss').classList.toggle('ph', !alert);
@@ -46,6 +46,7 @@ function goto(name) {
   else if (name === 'ach') { mode = 'ach'; renderAch(); }
   else if (name === 'stats') { mode = 'stats'; renderStats(); }
   else if (name === 'figs') { mode = 'figs'; renderFigs(); }
+  else if (name === 'missoes') { mode = 'missoes'; renderMissoes(); }
   else if (name === 'maps') { mode = 'maps'; renderMaps(); }
   else if (name === 'mais') { mode = 'mais'; renderMenu(); }
   else if (name === 'notes') { mode = 'notes'; $('#notelist').innerHTML = NOTES.map(([v, ...ls]) => `<div class="panel item"><div class="tx"><b>${v}</b>${ls.map(l => `<span>• ${l}</span>`).join('')}</div></div>`).join(''); }
@@ -80,27 +81,26 @@ function renderChars() {
   const id = charSel, c = CHARS[id], ok = !!save.chars[id], opts = skinOpts(id), cv = skinSpr(id), curI = opts.findIndex(o => o.spr === cv);
   const d = $('#chardet');
   d.innerHTML = `<div class="dh"><img src="${icon(cv)}" alt=""><div><b>${c.name}</b><span>${WEAPONS[c.weapon].name} · nível ${clvl(id)}${clvl(id) < 10 ? '' : ' (máx.)'}</span></div></div>` +
-    `<p>${c.bonus}.</p><p><i>${c.abName}:</i> ${c.abDesc}</p><p class="pas">${CPAS[id]}</p>` +
+    `<p>${c.bonus}.</p><p><i>${c.abName}${clvl(id) ? ' (+' + clvl(id) * 6 + '%)' : ''}:</i> ${c.abDesc}</p><p class="pas">${CPAS[id]}</p>` +
     `<div class="row dbtn">` + (ok ? `<button class="btn" id="cd-go">Escolher</button>` : `<button class="btn" id="cd-go" ${save.rap < c.price ? 'disabled' : ''}>Comprar por ${c.price}</button>`) +
     (ok && opts.length > 1 ? `<button class="btn ghost small" id="cd-skin">Visual: ${opts[Math.max(0, curI)].name}</button>` : '') + `</div>` +
     (ok ? '' : `<p class="lk">${c.unlockTxt} ou compre com rapadura.</p>`);
   $('#cd-go').onclick = () => { if (ok) startRun(id); else if (save.rap >= c.price) { save.rap -= c.price; save.chars[id] = true; persist(); sfx('coin'); refreshRap(); renderChars(); } };
   const sb = $('#cd-skin'); if (sb) sb.onclick = () => { save.skin[id] = opts[(Math.max(0, curI) + 1) % opts.length].v; persist(); sfx('ui'); renderChars(); };
 }
+let shopTab = 'sertao';
 function renderShop() {
   const box = $('#shoplist'); box.innerHTML = '';
   const allUp = Object.keys(SHOP).every(id => (save.up[id] || 0) >= SHOP[id].max), allCh = Object.keys(CHARS).every(id => save.chars[id]), pr = save.prest || 0;
-  { const el = document.createElement('div'); el.className = 'panel item' + (allUp && allCh ? '' : ' off');
-    el.innerHTML = `<img src="${icon('estrela')}" alt=""><div class="tx"><b>Prestígio ${pr ? '(nível ' + pr + ')' : ''}</b><span>${pr ? `Bônus atual: +${pr * 5}% de dano e de XP. ` : ''}Com a loja completa e todos os personagens liberados, recomece a loja, os personagens, os bichinhos e a rapadura em troca de +5% de dano e de XP para sempre.</span></div><button class="btn small" ${allUp && allCh ? '' : 'disabled'}>Recomeçar</button>`;
-    const bt = el.querySelector('button'); let armed = false;
-    bt.onclick = () => { if (!armed) { armed = true; bt.textContent = 'Confirmar?'; setTimeout(() => { armed = false; bt.textContent = 'Recomeçar'; }, 3000); return; } save.prest = pr + 1; save.rap = 0; save.up = {}; save.chars = { vaqueiro: true }; save.pets = {}; save.pet = null; persist(); sfx('win'); toast('Prestígio ' + save.prest + '! +' + save.prest * 5 + '% de dano e XP para sempre.'); refreshRap(); renderShop(); };
-    box.appendChild(el); }
+
+  { const tb = document.createElement('div'); tb.className = 'row tabs'; tb.style.gap = '8px'; for (const [m, nm] of [['sertao', 'Melhorias do Sertão'], ['praia', 'Melhorias da Praia']]) { const b = document.createElement('button'); b.className = 'btn small' + (shopTab === m ? '' : ' ghost'); b.textContent = nm; b.onclick = () => { shopTab = m; sfx('ui'); renderShop(); }; tb.appendChild(b); } box.appendChild(tb); }
+  const UPS = shopTab === 'praia' ? (save.upP = save.upP || {}) : save.up;
   for (const id in SHOP) {
-    const u = SHOP[id], l = save.up[id] || 0, max = l >= u.max, cost = u.base * (l + 1), el = document.createElement('div');
+    const u = SHOP[id], l = UPS[id] || 0, max = l >= u.max, cost = u.base * (l + 1), el = document.createElement('div');
     el.className = 'panel item';
     el.innerHTML = `<img src="${icon(u.ico)}" alt=""><div class="tx"><b>${u.name}</b><span>${u.desc}</span></div><span class="pips">${'■'.repeat(l)}${'□'.repeat(u.max - l)}</span>` +
       `<button class="btn small" ${max || save.rap < cost ? 'disabled' : ''}>${max ? 'Completo' : cost}</button>`;
-    el.querySelector('button').onclick = () => { if (!max && save.rap >= cost) { save.rap -= cost; save.up[id] = l + 1; persist(); sfx('coin'); refreshRap(); renderShop(); } };
+    el.querySelector('button').onclick = () => { if (!max && save.rap >= cost) { save.rap -= cost; UPS[id] = l + 1; persist(); sfx('coin'); refreshRap(); renderShop(); } };
     box.appendChild(el);
   }
   for (const id in PETS) {
@@ -115,6 +115,11 @@ function renderShop() {
     };
     box.appendChild(el);
   }
+  { const el = document.createElement('div'); el.className = 'panel item wide' + (allUp && allCh ? '' : ' off');
+    el.innerHTML = `<img src="${icon('estrela')}" alt=""><div class="tx"><b>Prestígio ${pr ? '(nível ' + pr + ')' : ''}</b><span>${pr ? `Bônus atual: +${pr * 5}% de dano e de XP. ` : ''}Com a loja completa e todos os personagens liberados, recomece a loja, os personagens, os bichinhos e a rapadura em troca de +5% de dano e de XP para sempre.</span></div><button class="btn small" ${allUp && allCh ? '' : 'disabled'}>Recomeçar</button>`;
+    const bt = el.querySelector('button'); let armed = false;
+    bt.onclick = () => { if (!armed) { armed = true; bt.textContent = 'Confirmar?'; setTimeout(() => { armed = false; bt.textContent = 'Recomeçar'; }, 3000); return; } save.prest = pr + 1; save.rap = 0; save.up = {}; save.upP = {}; save.chars = { vaqueiro: true }; save.pets = {}; save.pet = null; persist(); sfx('win'); toast('Prestígio ' + save.prest + '! +' + save.prest * 5 + '% de dano e XP para sempre.'); refreshRap(); renderShop(); };
+    box.appendChild(el); }
 }
 const LENDAS = {
   morcego: 'Bichos da noite que acompanham as visagens pelo sertão.', vagalume: 'Luzinhas que, dizem, são almas pequenas procurando caminho.',
@@ -228,7 +233,7 @@ function openRest() {
   show('rest');
 }
 function chooseRest(i) { if (mode !== 'rest') return; G.restPending = false; sfx('ui'); REST[i].f(); hideScreens(); mode = 'play'; last = performance.now(); banner('A madrugada começou'); }
-function rerollCost() { return (save.up.escolha ? 3 : 0) > (G.freeRr || 0) ? 0 : 3 + 2 * (G.rerolls || 0); } // Escolha Extra: 3 sorteios grátis por noite
+function rerollCost() { return (UP().escolha ? 3 : 0) > (G.freeRr || 0) ? 0 : 3 + 2 * (G.rerolls || 0); } // Escolha Extra: 3 sorteios grátis por noite
 function reroll() { const cost = rerollCost(); if (mode !== 'level' || G.rap < cost) return; if (cost) { G.rap -= cost; G.rerolls = (G.rerolls || 0) + 1; } else G.freeRr = (G.freeRr || 0) + 1; sfx('coin'); openLevel(true); }
 function choose(o) {
   if (mode !== 'level') return; sfx('ui'); const p = player;
