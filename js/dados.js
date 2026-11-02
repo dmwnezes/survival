@@ -27,7 +27,7 @@ const PASSIVES = {
   zabumba:   { name: 'Triângulo', desc: '+1 projétil nas armas.', max: 2 },
   bornal:    { name: 'Bornal', desc: 'Pega cajus de 30% mais longe.', max: 5 },
   cachaca:   { name: 'Cachaça de Alambique', desc: '+25% de dano, mas você anda meio torto.', max: 3 },
-  ferradura: { name: 'Ferradura', desc: 'Mais sorte: mais comida, rapadura, baús e cartas.', max: 5 },
+  ferradura: { name: 'Ferradura', desc: 'Mais sorte: mais comida, rapadura e baús.', max: 5 },
   lampiao:   { name: 'Lampião a Gás', desc: 'Ilumina mais longe e mostra os inimigos no minimapa.', max: 3 },
   chinelo:   { name: 'Chinelo', desc: '+12% de velocidade, mas escorrega nas curvas.', max: 3 },
   terco:     { name: 'Terço', desc: 'Cura 1 de vida a cada 10 inimigos derrotados.', max: 3 },
@@ -86,7 +86,7 @@ const SHOP = {
   pressa:  { name: 'Pressa', desc: '+5% de velocidade por nível', max: 5, base: 60, ico: 'cafe' },
   ima:     { name: 'Ímã', desc: '+10% de alcance de coleta por nível', max: 5, base: 45, ico: 'bornal' },
   recarga: { name: 'Recarga', desc: 'Armas 3% mais rápidas por nível', max: 5, base: 90, ico: 'cordel' },
-  escolha: { name: 'Escolha Extra', desc: '4 cartas ao subir de nível', max: 1, base: 400, ico: 'lamparina' },
+  escolha: { name: 'Escolha Extra', desc: '3 sorteios de cartas grátis por noite', max: 1, base: 400, ico: 'lamparina' },
   reviver: { name: 'Reviver', desc: 'Volta uma vez por noite com metade da vida', max: 1, base: 600, ico: 'cuscuz' },
 };
 const EN = {

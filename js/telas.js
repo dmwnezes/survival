@@ -66,25 +66,26 @@ function renderMaps() {
     el.innerHTML = `<img class="cimg" src="${icon(m.ico)}" alt=""><b>${m.name}</b><span>${m.sub}</span><span class="lk">${b && b.time ? 'Recorde: ' + fmt(b.time) + ', nível ' + b.level : 'Ainda sem recorde'}</span><button class="btn">Ir</button>`;
     el.querySelector('button').onclick = () => { save.map = id; persist(); goto('chars'); }; box.appendChild(el); }
 }
+let charSel = null;
+// seleção de personagem: fileira de retratos e um painel com os detalhes do escolhido
 function renderChars() {
   const nb = $('#btn-nm'), nmOk = !!save.ach.amanhecer, gm = nmOk ? save.gmode : 'normal'; nb.classList.toggle('hidden', !nmOk);
-  nb.textContent = gm === 'pesadelo' ? 'Modo Pesadelo: inimigos mais fortes, rapadura em dobro' : gm === 'infinito' ? 'Modo Infinito: a noite não acaba' : 'Modo Normal';
+  nb.textContent = gm === 'pesadelo' ? 'Modo Pesadelo' : gm === 'infinito' ? 'Modo Infinito' : 'Modo Normal';
   nb.style.color = gm === 'pesadelo' ? 'var(--red)' : gm === 'infinito' ? 'var(--acc)' : '';
+  if (!CHARS[charSel]) charSel = save.chars[lastChar] ? lastChar : 'vaqueiro';
   const box = $('#charlist'); box.innerHTML = '';
-  for (const id in CHARS) {
-    const c = CHARS[id], ok = !!save.chars[id], el = document.createElement('div');
-    const opts = skinOpts(id), cv = skinSpr(id), curI = opts.findIndex(o => o.spr === cv), lockSk = [SKINS[id], SKINS2[id]].filter(s => s && !save.ach[s.ach]);
-    el.className = 'panel char' + (ok ? '' : ' locked');
-    el.innerHTML = `<img class="cimg" src="${icon(cv)}" alt=""><b>${c.name}</b><span>${WEAPONS[c.weapon].name} · nível ${clvl(id)}${clvl(id) < 10 ? '' : ' (máx.)'}</span><span>${c.bonus}</span><span>Habilidade: ${c.abName}</span><span class="pas">${CPAS[id]}</span>` +
-      (ok ? `<button class="btn">Escolher</button>` : `<span class="lk">${c.unlockTxt} ou compre</span><button class="btn" ${save.rap < c.price ? 'disabled' : ''}>Comprar por ${c.price}</button>`) +
-      (!ok ? '' : opts.length > 1 ? `<button class="btn ghost skin">Visual: ${opts[Math.max(0, curI)].name}</button>` : '') + (ok && lockSk.length ? `<span class="lk">${lockSk[0].name}: conquista "${ACH[lockSk[0].ach].name}"</span>` : '');
-    const sb = el.querySelector('.skin'); if (sb) sb.onclick = () => { save.skin[id] = opts[(Math.max(0, curI) + 1) % opts.length].v; persist(); sfx('ui'); renderChars(); };
-    el.querySelector('button').onclick = () => {
-      if (ok) startRun(id);
-      else if (save.rap >= c.price) { save.rap -= c.price; save.chars[id] = true; persist(); sfx('coin'); refreshRap(); renderChars(); }
-    };
-    box.appendChild(el);
-  }
+  for (const id in CHARS) { const ok = !!save.chars[id], el = document.createElement('button');
+    el.className = 'ctile' + (ok ? '' : ' locked') + (id === charSel ? ' sel' : ''); el.innerHTML = `<img src="${icon(skinSpr(id))}" alt=""><span>${CHARS[id].name}</span>`;
+    el.onclick = () => { charSel = id; sfx('ui'); renderChars(); }; box.appendChild(el); }
+  const id = charSel, c = CHARS[id], ok = !!save.chars[id], opts = skinOpts(id), cv = skinSpr(id), curI = opts.findIndex(o => o.spr === cv);
+  const d = $('#chardet');
+  d.innerHTML = `<div class="dh"><img src="${icon(cv)}" alt=""><div><b>${c.name}</b><span>${WEAPONS[c.weapon].name} · nível ${clvl(id)}${clvl(id) < 10 ? '' : ' (máx.)'}</span></div></div>` +
+    `<p>${c.bonus}.</p><p><i>${c.abName}:</i> ${c.abDesc}</p><p class="pas">${CPAS[id]}</p>` +
+    `<div class="row dbtn">` + (ok ? `<button class="btn" id="cd-go">Escolher</button>` : `<button class="btn" id="cd-go" ${save.rap < c.price ? 'disabled' : ''}>Comprar por ${c.price}</button>`) +
+    (ok && opts.length > 1 ? `<button class="btn ghost small" id="cd-skin">Visual: ${opts[Math.max(0, curI)].name}</button>` : '') + `</div>` +
+    (ok ? '' : `<p class="lk">${c.unlockTxt} ou compre com rapadura.</p>`);
+  $('#cd-go').onclick = () => { if (ok) startRun(id); else if (save.rap >= c.price) { save.rap -= c.price; save.chars[id] = true; persist(); sfx('coin'); refreshRap(); renderChars(); } };
+  const sb = $('#cd-skin'); if (sb) sb.onclick = () => { save.skin[id] = opts[(Math.max(0, curI) + 1) % opts.length].v; persist(); sfx('ui'); renderChars(); };
 }
 function renderShop() {
   const box = $('#shoplist'); box.innerHTML = '';
@@ -177,7 +178,7 @@ function rollOptions() {
   // com muitas armas e itens no jogo, as novidades não podem abafar as melhorias do que você já tem
   const nW = pool.filter(o => o.k === 'wnew').length, nP = pool.filter(o => o.k === 'pnew').length;
   for (const o of pool) { if (o.k === 'wnew' && nW > 8) o.w = 2 * 8 / nW; if (o.k === 'pnew' && nP > 8) o.w = 1.5 * 8 / nP; }
-  const n = (save.up.escolha ? 4 : 3) + (Math.random() < 0.1 * (p.pass.ferradura || 0) ? 1 : 0), out = pool.filter(o => o.k === 'evo' || o.k === 'fuse'), rest = pool.filter(o => o.k !== 'evo' && o.k !== 'fuse');
+  const n = 3, out = pool.filter(o => o.k === 'evo' || o.k === 'fuse'), rest = pool.filter(o => o.k !== 'evo' && o.k !== 'fuse');
   while (out.length < n && rest.length) {
     let tot = 0; for (const o of rest) tot += o.w; let r = Math.random() * tot, i = 0;
     for (; i < rest.length - 1; i++) { r -= rest[i].w; if (r <= 0) break; }
@@ -204,7 +205,7 @@ function cardHTML(o) {
 }
 function openLevel(again) {
   mode = 'level'; joy = null; if (!again) sfx('lvl');
-  const rr = $('#btn-reroll'), cost = 3 + 2 * (G.rerolls || 0); rr.textContent = `Sortear de novo (${cost} rapaduras da noite)`; rr.disabled = G.rap < cost;
+  const rr = $('#btn-reroll'), cost = rerollCost(); rr.textContent = cost ? `Sortear de novo (${cost} rapaduras da noite)` : `Sortear de novo (grátis, ${3 - (G.freeRr || 0)} restantes)`; rr.disabled = G.rap < cost;
   const box = $('#cards'); box.innerHTML = '';
   rollOptions().forEach((o, i) => {
     const b = document.createElement('button'); b.className = 'card ' + (o.k === 'evo' || o.k === 'fuse' ? 'evo' : o.k === 'wnew' || o.k === 'wup' ? 'k-arma' : o.k === 'pnew' || o.k === 'pup' ? 'k-item' : 'k-cura');
@@ -227,7 +228,8 @@ function openRest() {
   show('rest');
 }
 function chooseRest(i) { if (mode !== 'rest') return; G.restPending = false; sfx('ui'); REST[i].f(); hideScreens(); mode = 'play'; last = performance.now(); banner('A madrugada começou'); }
-function reroll() { const cost = 3 + 2 * (G.rerolls || 0); if (mode !== 'level' || G.rap < cost) return; G.rap -= cost; G.rerolls = (G.rerolls || 0) + 1; sfx('coin'); openLevel(true); }
+function rerollCost() { return (save.up.escolha ? 3 : 0) > (G.freeRr || 0) ? 0 : 3 + 2 * (G.rerolls || 0); } // Escolha Extra: 3 sorteios grátis por noite
+function reroll() { const cost = rerollCost(); if (mode !== 'level' || G.rap < cost) return; if (cost) { G.rap -= cost; G.rerolls = (G.rerolls || 0) + 1; } else G.freeRr = (G.freeRr || 0) + 1; sfx('coin'); openLevel(true); }
 function choose(o) {
   if (mode !== 'level') return; sfx('ui'); const p = player;
   if (o.k === 'wnew') { p.weapons.push({ id: o.id, lvl: 1, cd: 0.2, ev: false }); refreshSyn(); }

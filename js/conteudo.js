@@ -4,8 +4,9 @@
    Só dados e sprites; a lógica fica em extra.js, ligada ao
    núcleo pelas tabelas de ganchos abaixo.
    ========================================================= */
-const VERSION = 'v3.0';
+const VERSION = 'v3.1';
 const NOTES = [
+  ['v3.1', 'Sempre 3 cartas ao subir de nível; a Escolha Extra da loja agora dá 3 sorteios grátis por noite.', 'Seleção de personagem mais limpa: retratos em fila e um painel só com o escolhido.', 'Telas sem barra de rolagem.'],
   ['v3.0', 'Mapa novo: Praia de Jangadas, com noite de 15 minutos. Escolha o mapa antes do personagem.',
     'Mar com maré que sobe e desce, correnteza que arrasta, ilhas com baús e jangadas para navegar.',
     'Na maré baixa a areia descoberta fica cheia de conchas e rapadura; na maré cheia o mar traz visagens.',
