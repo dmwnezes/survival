@@ -34,7 +34,7 @@ function update(dt) {
   if (player.st.drunk && (ix || iy)) { const a = (Math.sin(player.t * 2.3) * 0.22 + Math.sin(player.t * 5.1) * 0.08) * player.st.drunk, c = Math.cos(a), sn = Math.sin(a); [ix, iy] = [ix * c - iy * sn, ix * sn + iy * c]; }
   const l = Math.hypot(ix, iy);
   player.moving = l > 0.05; if (player.moving) { player.fx = ix / l; player.fy = iy / l; }
-  const sp = 62 * player.st.spd * (G.slow > 0 ? 0.5 : 1) * (G.rain > 0 ? 0.8 : 1) * (G.ride > 0 ? 1.5 : 1) * (G.sand ? 0.45 : 1) * (onRoad(player.x, player.y) ? 1.25 : 1) * (G.giant > 0 ? 1.3 : 1) * (G.altar && G.altar.k === 'pressa' ? 1.4 : 1) * (1 + (G.esp || 0) / 100);
+  const sp = 62 * player.st.spd * (G.slow > 0 ? 0.5 : 1) * (G.rain > 0 ? 0.8 : 1) * (G.ride > 0 ? 1.5 : 1) * (G.sand ? 0.45 : 1) * (onRoad(player.x, player.y) ? 1.25 : 1) * (G.giant > 0 ? 1.3 : 1) * (G.altar && G.altar.k === 'pressa' ? 1.4 : 1) * (1 + (G.esp || 0) / 100) * (MAP === 'praia' ? PRAIA.playerWater(dt) : 1);
   const rsp = sp * (inRiver(player.x, player.y) && player.char !== 'pescador' ? 0.4 : 1);
   if (player.st.slip) { const k = Math.min(1, 6 / (1 + player.st.slip * 0.6) * dt); player.vx += (ix * rsp - player.vx) * k; player.vy += (iy * rsp - player.vy) * k; } // chinelo escorrega
   else { player.vx = ix * rsp; player.vy = iy * rsp; }
@@ -54,8 +54,8 @@ function update(dt) {
   if (G.kills >= 1000) unlockAch('mil');
   if (G.time >= RUN && !G.dawn && !G.inf) {
     if (G.nm && !G.secretDone) { // Pesadelo: o Anhangá guarda o amanhecer
-      if (!G.secret) { G.secret = 1; spawnBoss(SECRET_BOSS); banner('A noite ainda não acabou...'); }
-      else if (!(G.boss && G.boss.alive)) { G.secretDone = true; unlockAch('anhanga'); startDawn(); }
+      if (!G.secret) { G.secret = 1; spawnBoss(MAP === 'praia' ? PRAIA_SECRET : SECRET_BOSS); banner('A noite ainda não acabou...'); }
+      else if (!(G.boss && G.boss.alive)) { G.secretDone = true; unlockAch(MAP === 'praia' ? 'princesa' : 'anhanga'); startDawn(); }
     } else startDawn();
   }
   if (G.dawn) { G.dawn += dt; if (G.dawn > 2.6 && mode === 'play') startCut('outro', () => endRun(true)); }
@@ -142,7 +142,7 @@ function updWorld(dt) {
     if (!village.entered && !defV()) { village.entered = true; village.def = village.big ? 40 : 30; banner(`Proteja os moradores por ${village.def}s!`); sfx('warn'); spawnElite(); village.vill = Array.from({ length: village.big ? 6 : 3 }, (_, i) => ({ x: village.x + (i % 3 - 1) * 22, y: village.y + 8 + Math.floor(i / 3) * 18, hp: 60 })); }
     if (village.def <= 0) continue;
     village.t -= dt;
-    if (village.t <= 0) { village.t = 2.5; for (let i = 0; i < 3; i++) { const [x, y] = edgePos(); spawnEnemy('alma', x, y); } }
+    if (village.t <= 0) { village.t = 2.5; for (let i = 0; i < 3; i++) { const [x, y] = edgePos(); spawnEnemy(MAP === 'praia' ? 'afogado' : 'alma', x, y); } }
   }
   for (const c of carts) {
     c.x += c.vx * dt; c.life -= dt; if (c.x < 10 || c.x > MAPW - 10) c.life = 0;

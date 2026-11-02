@@ -8,7 +8,7 @@ let EXW = { forests: [], corn: [], marks: [], npcs: [] }, treeGrid = new Map(), 
 EN.morcego.fly = 1; EN.vagalume.fly = 1; EN.muricoca.fly = 1; // voadores passam por cima do rio e dos espinhos
 EN.ilusao = { hp: 30, spd: 52, dmg: 12, xp: 0, r: 10, spr: 'anhanga', scale: 0.9, col: '#e8eeff' };
 const onScr2 = (x, y, m) => Math.abs(x - player.x) < VW / 2 + m && Math.abs(y - player.y) < VH / 2 + m; // não depende da câmera (vale também na simulação)
-const tdm = () => (1 + Math.min(G.time, 900) / 480 + Math.max(0, G.time - 900) / 900) * (G.nm ? 1.4 : 1);
+const tdm = () => { const t = G.time * (MAP === 'praia' ? 1.25 : 1); return (1 + Math.min(t, 900) / 480 + Math.max(0, t - 900) / 900) * (G.nm ? 1.4 : 1); };
 const wsFor = id => { const w = flatW().find(x => x.id === id); if (!w) return null; const s = wstat(w.id, w.lvl, w.ev); if (w.fzB) { s.dmg *= 1.35; if (s.cd) s.cd *= 0.85; } return [w, s]; };
 
 /* ---------------- armas novas: status ---------------- */
@@ -333,7 +333,7 @@ EXH.world = dt => {
   // bodes e jumentos de passagem
   G.animT = (G.animT == null ? 30 : G.animT) - dt;
   if (G.animT <= 0 && !G.dawn) { G.animT = rand(35, 55); let near = 0; for (const e of enemies) if (e.d.neutral && dist2(e.x, e.y, player.x, player.y) < 500 * 500) near++; if (near < 4) { const [x, y] = edgePos(); const k = Math.random() < 0.6 ? 'bode' : 'jumento', n = k === 'bode' ? 3 : 1; for (let i = 0; i < n; i++) { spawnEnemy(k, clamp(x + rand(-14, 14), 10, MAPW - 10), clamp(y + rand(-14, 14), 10, MAPH - 10)); G.nProps++; } } }
-  for (const k of EXW.marks) if (k.k === 'bodega') { k.cd = (k.cd || 0) - dt; const d2 = dist2(k.x, k.y + 10, player.x, player.y);
+  for (const k of EXW.marks) if (k.k === 'bodega' || k.k === 'barraca') { k.cd = (k.cd || 0) - dt; const d2 = dist2(k.x, k.y + 10, player.x, player.y);
     if (k.cd <= 0 && d2 < 20 * 20) { k.hold = (k.hold || 0) + dt; if (k.hold >= 0.8) { k.hold = 0; if (G.rap < 8) { k.cd = 3; toast('A bodega pede 8 rapaduras da noite.'); } else { G.rap -= 8; k.cd = 60; player.hp = Math.min(player.maxHp, player.hp + 50); toast('Bodega: baião de dois! +50 de vida'); sfx('coin'); burst(player.x, player.y, '#86d46f', 12, true); } } } else k.hold = 0; }
   for (const n of EXW.npcs) if (!n.said && dist2(n.x, n.y, player.x, player.y) < 34 * 34) { n.said = true; toast(n.line); }
 };
@@ -347,14 +347,14 @@ function catmull(pts, step) {
 }
 // estradas em pixel, como o rio: a curva vira uma grade de células de 4px (borda, terra, sulcos e pedrinhas)
 const RC = 4; let roadCells = new Map(), roadRuns = new Map();
-function buildRoads() {
+function buildRoads(col) {
   roadSm = roads.map(r => catmull(r, 6)); roadCells = new Map();
   for (const pts of roadSm) for (let i = 0; i < pts.length; i++) {
     const p = pts[i], w = 1 + 0.14 * Math.sin(i * 0.031) + 0.07 * Math.sin(i * 0.17), R = 17 * w;
     const cx0 = Math.floor((p.x - R) / RC), cx1 = Math.floor((p.x + R) / RC), cy0 = Math.floor((p.y - R) / RC), cy1 = Math.floor((p.y + R) / RC);
     for (let cx = cx0; cx <= cx1; cx++) for (let cy = cy0; cy <= cy1; cy++) { const d = Math.hypot(cx * RC + 2 - p.x, cy * RC + 2 - p.y) / w; if (d < 17) { const k = cx * 8192 + cy, o = roadCells.get(k); if (o === undefined || d < o) roadCells.set(k, d); } }
   }
-  const COL = ['#232540', '#2a2a45', '#33304c', '#2a2842', '#3f3b59'], rows = new Map();
+  const COL = col || ['#232540', '#2a2a45', '#33304c', '#2a2842', '#3f3b59'], rows = new Map();
   for (const [k, d] of roadCells) { const cx = Math.floor(k / 8192), cy = k - cx * 8192, h = Math.sin(cx * 12.9898 + cy * 78.233) * 43758.5453, r = h - Math.floor(h);
     const t = d >= 15 ? 0 : d >= 12.5 ? 1 : (d > 4.5 && d < 7.5 && r < 0.85) ? 3 : r < 0.05 ? 4 : 2;
     const ch = ((cx * RC / 256) | 0) * 1000 + ((cy * RC / 256) | 0); let m = rows.get(ch); if (!m) rows.set(ch, m = []); m.push([cy, cx, t]); }
@@ -400,7 +400,7 @@ EXH.drawGround = () => {
   for (const k of EXW.marks) { if (!onScreen(k.x, k.y, 70)) continue; const s = S[k.k], sc = k.k === 'igreja' || k.k === 'casarao' || k.k === 'catavento' || k.k === 'estacao' || k.k === 'curral' || k.k === 'feira' ? 2 : k.k === 'engenho' ? 1.8 : 1.6;
     longShadow(s, k.x, k.y + s.H * sc / 2, sc); shadow(k.x, k.y + s.H * sc / 2 - 1, s.W * sc * 0.8); drawSpr(s, k.x, k.y, { sc });
     if (k.k === 'catavento') { const cx = k.x, cy = k.y - s.H * sc / 2 - 2, a0 = G.time * 2.5; ctx.strokeStyle = '#a4a4ba'; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = a0 + i * 1.047; ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * 11, cy + Math.sin(a) * 11); } ctx.stroke(); ctx.fillStyle = '#f2c14e'; ctx.fillRect(cx - 1, cy - 1, 2, 2); }
-    if (k.k === 'bodega' && k.hold > 0) { ctx.strokeStyle = '#86d46f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(k.x, k.y + 10, 16, -1.57, -1.57 + 6.283 * k.hold / 0.8); ctx.stroke(); } }
+    if ((k.k === 'bodega' || k.k === 'barraca') && k.hold > 0) { ctx.strokeStyle = '#86d46f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(k.x, k.y + 10, 16, -1.57, -1.57 + 6.283 * k.hold / 0.8); ctx.stroke(); } }
   for (const n of EXW.npcs) if (onScreen(n.x, n.y, 20)) { shadow(n.x, n.y + 6, 8); drawSpr(S[n.k], n.x, n.y - (Math.sin(G.time * 2 + n.x) > 0.6 ? 1 : 0)); }
   for (const m of meteors) { const k = Math.min(1, m.t / 1.2); ctx.strokeStyle = `rgba(255,59,46,${0.4 + 0.5 * k})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(m.x, m.y, 26, 15, 0, 0, 6.283); ctx.stroke(); ctx.fillStyle = `rgba(255,59,46,${0.18 * k})`; ctx.fill(); }
   for (const w of ewaves) { ctx.strokeStyle = `rgba(255,80,50,${0.7 * (1 - w.r / w.max)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(w.x, w.y, w.r, w.r * 0.6, 0, 0, 6.283); ctx.stroke(); }
@@ -444,8 +444,8 @@ Object.assign(SYN, {
 });
 // fases da noite: nome, cor da escuridão e visagens que aparecem mais
 const PHASES = [{ t: 0, name: 'Anoitecer', col: [4, 6, 22] }, { t: 450, name: 'Meia-Noite', col: [2, 3, 30] }, { t: 900, name: 'Madrugada', col: [2, 14, 24] }, { t: 1440, name: 'Antes da Aurora', col: [18, 8, 26] }];
-EXH.phase = () => { const t = G ? G.time : 0; let i = 0; for (let k = 0; k < PHASES.length; k++) if (t >= PHASES[k].t) i = k; return i; };
-EXH.nightCol = a => { const i = EXH.phase(), A = PHASES[i].col, B = PHASES[Math.min(PHASES.length - 1, i + 1)].col, nx = PHASES[i + 1] ? PHASES[i + 1].t : RUN, k = clamp((G.time - (nx - 40)) / 40, 0, 1), c = A.map((v, j) => Math.round(v + (B[j] - v) * k)); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; };
+EXH.phase = () => { const t = G ? G.time : 0; let i = 0; for (let k = 0; k < PHASES.length; k++) if (t >= PHASES[k].t * RUN / 1800) i = k; return i; };
+EXH.nightCol = a => { const i = EXH.phase(), A = PHASES[i].col, B = PHASES[Math.min(PHASES.length - 1, i + 1)].col, nx = PHASES[i + 1] ? PHASES[i + 1].t * RUN / 1800 : RUN, k = clamp((G.time - (nx - 40)) / 40, 0, 1), c = A.map((v, j) => Math.round(v + (B[j] - v) * k)); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; };
 EXH.phaseW = (type, w) => { const p = EXH.phase(); if (type === 'coruja' || type === 'tatu') return p >= 2 ? w * 1.5 : w; if (type === 'lambisgoia' || type === 'rezadeira') return p >= 3 ? w * 1.6 : w; return w; };
 
 const bulls = [], fogosL = [];
@@ -484,7 +484,7 @@ EB2.cangaceiro = (e, dt, dx, dy, d, px, py) => {
 EXH.world2 = dt => {
   const ph = EXH.phase(); if (G.phase == null) G.phase = ph; else if (ph !== G.phase) { G.phase = ph; banner(PHASES[ph].name); sfx('warn'); }
   // descanso aos 15:00
-  if (!G.restDone && G.time >= 900 && !G.inf && !G.dawn) { G.restDone = true; G.restPending = true; }
+  if (!G.restDone && RUN >= 1800 && G.time >= 900 && !G.inf && !G.dawn) { G.restDone = true; G.restPending = true; }
   for (const b of bulls) {
     if (b.warn > 0) { b.warn -= dt; continue; }
     b.pos += 270 * dt; const bx = b.horiz ? b.cx + b.dir * b.pos : b.cx + b.off, by = b.horiz ? b.cy + b.off : b.cy + b.dir * b.pos; b.x = bx; b.y = by;

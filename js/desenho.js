@@ -94,8 +94,8 @@ function drawGround() {
   for (const r of roots) { if (!onScreen(r.x, r.y, 20)) continue; const k = Math.min(1, r.t / 0.9); if (r.t < 0.9) { ctx.strokeStyle = 'rgba(255,59,46,0.75)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(r.x, r.y, 16, 9, 0, 0, 6.283); ctx.stroke(); } drawSpr(S.raiz, r.x, r.y - 3 * k, { sc: 0.5 + k * 1.3 }); }
   for (const h of honeys) { if (!onScreen(h.x, h.y, h.r)) continue; ctx.globalAlpha = 0.4 * Math.min(1, h.life / 0.6); ctx.fillStyle = '#e8a020'; ctx.beginPath(); ctx.ellipse(h.x, h.y, h.r, h.r * 0.6, 0, 0, 6.283); ctx.fill(); }
   ctx.globalAlpha = 1;
-  for (const g of goos) { if (!onScreen(g.x, g.y, 30)) continue; ctx.globalAlpha = 0.55 * Math.min(1, g.life / 0.6); ctx.fillStyle = g.c === 2 ? '#3e2e22' : g.c ? '#24407a' : '#6e2a3a'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = g.c === 2 ? '#6a5236' : g.c ? '#7fb2e5' : '#ff6a5a'; ctx.fillRect(Math.round(g.x - 4), Math.round(g.y - 2), 2, 1); ctx.fillRect(Math.round(g.x + 5), Math.round(g.y + 2), 1, 1); }
-  for (const m of marks) { if (!onScreen(m.x, m.y, 10)) continue; ctx.globalAlpha = Math.min(0.85, m.life / 2); ctx.fillStyle = '#c86a3a'; ctx.fillRect(Math.round(m.x - Math.sin(m.a) * 2 * m.s), Math.round(m.y + Math.cos(m.a) * 2 * m.s), 2, 1); }
+  for (const g of goos) { if (!onScreen(g.x, g.y, 30)) continue; ctx.globalAlpha = 0.55 * Math.min(1, g.life / 0.6); ctx.fillStyle = g.c === 3 ? '#16121e' : g.c === 2 ? '#3e2e22' : g.c ? '#24407a' : '#6e2a3a'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = g.c === 2 ? '#6a5236' : g.c ? '#7fb2e5' : '#ff6a5a'; ctx.fillRect(Math.round(g.x - 4), Math.round(g.y - 2), 2, 1); ctx.fillRect(Math.round(g.x + 5), Math.round(g.y + 2), 1, 1); }
+  for (const m of marks) { if (!onScreen(m.x, m.y, 10)) continue; ctx.globalAlpha = Math.min(0.85, m.life / 2); ctx.fillStyle = m.c || '#c86a3a'; ctx.fillRect(Math.round(m.x - Math.sin(m.a) * 2 * m.s), Math.round(m.y + Math.cos(m.a) * 2 * m.s), 2, 1); }
   ctx.globalAlpha = 1;
   for (const s of spots) { if (!onScreen(s.x, s.y, 30)) continue;
     if (s.k === 'capela') { longShadow(S.capela, s.x, s.y + S.capela.H / 2, 1); shadow(s.x, s.y + 6, 12); drawSpr(S.capela, s.x, s.y); if (s.charge > 5) { ctx.strokeStyle = 'rgba(180,210,255,0.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(s.x, s.y + 4, 22, 0, 6.283); ctx.stroke(); } }
@@ -106,7 +106,7 @@ function drawGround() {
     else if (s.k === 'coronel') { shadow(s.x, s.y + 7, 10); drawSpr(S.coronel, s.x, s.y); if (s.cd <= 0) { ctx.fillStyle = '#f2c14e'; ctx.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 16, 2, 5); ctx.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 9, 2, 2); } if (s.hold > 0) { ctx.strokeStyle = '#f2c14e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(s.x, s.y, 14, -1.57, -1.57 + 6.283 * s.hold / 0.8); ctx.stroke(); } }
     else if (s.k === 'altar') { ctx.globalAlpha = s.cd > 0 ? 0.45 : 1; drawSpr(S.altar, s.x, s.y, { sc: 2 }); ctx.globalAlpha = 1; if (s.hold > 0) { ctx.strokeStyle = '#e05545'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(s.x, s.y, 14, -1.57, -1.57 + 6.283 * s.hold / 1.2); ctx.stroke(); } }
   }
-  for (const village of villages) for (const h of village.houses) if (onScreen(h.x, h.y, 40)) { longShadow(S.casa, h.x, h.y + S.casa.H, 2); shadow(h.x, h.y + 11, 34); drawSpr(S.casa, h.x, h.y, { sc: 2 }); }
+  for (const village of villages) { const hs = village.kind ? S.casaPescador : S.casa; for (const h of village.houses) if (onScreen(h.x, h.y, 40)) { longShadow(hs, h.x, h.y + hs.H, 2); shadow(h.x, h.y + 11, 34); drawSpr(hs, h.x, h.y, { sc: 2 }); } }
   for (const g of graves) for (const t of g.list) if (onScreen(t.x, t.y, 20)) { longShadow(S.tumulo, t.x, t.y + S.tumulo.H / 2, 1); drawSpr(S.tumulo, t.x, t.y); }
   for (const village of villages) if (village.def > 0) for (const v of village.vill) if (v.hp > 0) { shadow(v.x, v.y + 5, 7); drawSpr(S.morador, v.x, v.y); ctx.fillStyle = '#000'; ctx.fillRect(Math.round(v.x - 7), Math.round(v.y - 9), 14, 3); ctx.fillStyle = '#86d46f'; ctx.fillRect(Math.round(v.x - 6), Math.round(v.y - 8), Math.round(12 * v.hp / 60), 1); }
   EXH.drawGround();
@@ -133,6 +133,7 @@ function drawMini() { // radar da região em volta do jogador; setas na borda pa
   ctx.strokeStyle = 'rgba(52,50,79,0.9)'; ctx.lineWidth = 1; for (const r of roadSm) { ctx.beginPath(); for (let i = 0; i < r.length; i += 12) i ? ctx.lineTo(mx(r[i].x), my(r[i].y)) : ctx.moveTo(mx(r[i].x), my(r[i].y)); ctx.stroke(); }
   ctx.fillStyle = 'rgba(42,74,48,0.55)'; for (const f of EXW.forests) if (Math.abs(f.x - player.x) < RW && Math.abs(f.y - player.y) < RH) { ctx.beginPath(); ctx.ellipse(mx(f.x), my(f.y), Math.max(1, f.r * kx), Math.max(1, f.r * 0.75 * ky), 0, 0, 6.283); ctx.fill(); }
   ctx.fillStyle = '#22356a'; for (const a2 of acudes) if (inside(a2.x, a2.y) || Math.abs(a2.x - player.x) < RW) { ctx.beginPath(); ctx.ellipse(mx(a2.x), my(a2.y), Math.max(1, a2.rx * kx), Math.max(1, a2.ry * ky), 0, 0, 6.283); ctx.fill(); }
+  if (MAP === 'praia') PRAIA.mini(mx, my, ox, oy, RW, RH);
   ctx.strokeStyle = '#22356a'; ctx.lineWidth = 2; ctx.beginPath(); for (let y = oy - 100; y <= oy + RH + 100; y += 80) { const X = mx(riverX(y)), Y = my(y); y > oy - 100 ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); } ctx.stroke(); ctx.lineWidth = 1;
   const dot = (x, y, c, sz) => { ctx.fillStyle = c; ctx.fillRect(Math.round(mx(x) - sz / 2), Math.round(my(y) - sz / 2), sz, sz); };
   for (const v of villages) { ctx.strokeStyle = v.def > 0 ? '#86d46f' : '#8a8070'; ctx.strokeRect(Math.round(mx(v.x)) - 2.5, Math.round(my(v.y)) - 2.5, 5, 5); }
@@ -175,9 +176,9 @@ function drawEnemies() {
   for (const e of enemies) {
     if (e.d.snake) { snakes.push(e); continue; } if (e.d.seg) continue;
     const sc = e.sc; if (!onScreen(e.x, e.y, 20 * sc)) continue;
-    let s = S[e.d.spr]; if (e.type === 'morcego' && Math.sin(e.t * 14) > 0) s = S.morcego2; if (e.type === 'urubu' && Math.sin(e.t * 9) > 0) s = S.urubu2; if (e.type === 'coruja' && Math.sin(e.t * 10) > 0) s = S.coruja2;
+    let s = S[e.d.spr]; if (e.type === 'morcego' && Math.sin(e.t * 14) > 0) s = S.morcego2; if (e.type === 'urubu' && Math.sin(e.t * 9) > 0) s = S.urubu2; if (e.type === 'coruja' && Math.sin(e.t * 10) > 0) s = S.coruja2; else if (e.d.flap && Math.sin(e.t * 10) > 0) s = S[e.d.flap];
     if (e.raged && S[e.d.spr + '_p2']) s = S[e.d.spr + '_p2'];
-    if (e.hide) { ctx.globalAlpha = 1; drawSpr(S.monte, e.x, e.y + 2); continue; }
+    if (e.hide) { ctx.globalAlpha = 1; if (e.type === 'baleia') { ctx.fillStyle = 'rgba(10,20,40,0.5)'; ctx.beginPath(); ctx.ellipse(e.x, e.y, 34, 12, 0, 0, 6.283); ctx.fill(); drawSpr(S.barbatana, e.x, e.y - 4, { sc: 2.5 }); } else drawSpr(e.type === 'tubarao' ? S.barbatana : S.monte, e.x, e.y + 2, { sc: e.type === 'tubarao' ? 1.4 : 1 }); continue; }
     if (e.type === 'cabecadecuia' && e.ch > 0) { shadow(e.x, e.y + s.H * sc / 2 - 1, s.W * sc * 0.6); ctx.save(); ctx.translate(Math.round(e.x), Math.round(e.y)); ctx.rotate(e.t * 9 * Math.sign(e.cdx || 1)); ctx.drawImage(e.flash > 0 ? s.w : s.n, -s.W * sc / 2, -s.H * sc / 2, s.W * sc, s.H * sc); ctx.restore(); continue; }
     s = frameOf(s, e.t * (e.ch > 0 ? 1.8 : 1), Math.abs(e.vx) + Math.abs(e.vy) > 3);
     ctx.globalAlpha = e.type === 'alma' || e.type === 'ilusao' ? 0.75 : e.vanish > 0 ? 0.15 : 1;
@@ -194,8 +195,9 @@ function drawEnemies() {
   }
   ctx.globalAlpha = 1;
   for (const h of snakes) {
-    for (let i = h.segs.length - 1; i >= 0; i--) { const sg = h.segs[i]; drawSpr(h.raged ? S.boitataSeg_p2 : S.boitataSeg, sg.x, sg.y, { sc: Math.max(1.1, 1.7 - i * 0.03), white: h.flash > 0 }); }
-    const hs = h.raged ? S.boitataHead_p2 : S.boitataHead, k = 0.8;
+    const sgn = h.d.segSpr || 'boitataSeg', hdn = h.d.headSpr || 'boitataHead';
+    for (let i = h.segs.length - 1; i >= 0; i--) { const sg = h.segs[i]; drawSpr(h.raged && S[sgn + '_p2'] ? S[sgn + '_p2'] : S[sgn], sg.x, sg.y, { sc: Math.max(1.1, 1.7 - i * 0.03), white: h.flash > 0 }); }
+    const hs = h.raged && S[hdn + '_p2'] ? S[hdn + '_p2'] : S[hdn], k = 0.8;
     ctx.save(); ctx.translate(Math.round(h.x), Math.round(h.y)); ctx.rotate(h.ang); ctx.drawImage(h.flash > 0 ? hs.w : hs.n, Math.round(-hs.W * k / 2), Math.round(-hs.H * k / 2), Math.round(hs.W * k), Math.round(hs.H * k)); ctx.restore();
   }
 }
@@ -288,7 +290,8 @@ const lightC = document.createElement('canvas'), lightX = lightC.getContext('2d'
 function nightAlpha() {
   const t = G.time; if (G.inf && t > RUN) return 0.84;
   if (G.moon > 0) return 0.6; // lua cheia clareia o sertão
-  return t < 900 ? 0.7 + 0.1 * (t / 900) : t < RUN - 180 ? 0.8 + 0.04 * Math.min(1, (t - 900) / 300) : 0.84 - 0.46 * Math.min(1, (t - (RUN - 180)) / 180);
+  const h = RUN / 2, end = RUN * 0.9; // proporcional à duração da noite (30 min no sertão, 15 na praia)
+  return t < h ? 0.7 + 0.1 * (t / h) : t < end ? 0.8 + 0.04 * Math.min(1, (t - h) / (RUN / 6)) : 0.84 - 0.46 * Math.min(1, (t - end) / (RUN - end));
 }
 function drawLight() { // escuridão com "furos" de luz: jogador, fogueiras, explosões, chamas
   if (lightC.width !== VW || lightC.height !== VH) { lightC.width = VW; lightC.height = VH; }
@@ -343,7 +346,7 @@ function drawTitle() { // tela inicial: vaqueiro na fogueira, lua passando, visa
 function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   if (mode === 'cutscene' && cut) { drawCut(); return; }
-  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach' && mode !== 'stats' && mode !== 'figs' && mode !== 'notes' && mode !== 'mais');
+  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach' && mode !== 'stats' && mode !== 'figs' && mode !== 'notes' && mode !== 'mais' && mode !== 'maps');
   if (!inRun) { drawTitle(); return; }
   let cx, cy;
   cx = player.x; cy = player.y;
@@ -351,7 +354,7 @@ function render() {
   camX = Math.round(cx - VW / 2 + (Math.random() - 0.5) * sh * 2); camY = Math.round(cy - VH / 2 + (Math.random() - 0.5) * sh * 2);
   ctx.save(); ctx.translate(-camX, -camY);
   ctx.fillStyle = groundPat; ctx.fillRect(camX, camY, VW, VH);
-  drawPatches(); drawBorder(); if (inRun) { drawRoads(); drawPuddles(); drawRiver(); drawWater(); drawTraps(); } drawDecor();
+  drawPatches(); drawBorder(); if (inRun) { drawRoads(); drawPuddles(); drawRiver(); drawWater(); if (MAP === 'praia') PRAIA.drawSea(); drawTraps(); } drawDecor();
   if (inRun) { drawGround(); drawPools(); drawItems(); drawEnemies(); drawPilgrims(); drawCarts(); drawWhirls(); drawPlayer(); drawAllies(); drawProjs(); drawFx(); drawParts(false); EXH.drawTop(); }
   ctx.restore();
   drawLight();

@@ -197,7 +197,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
     <p class="sub">Sobreviva no sertão até o sol nascer</p>
     <div class="col">
       <button class="btn hidden" id="btn-continue">Continuar a noite</button>
-      <button class="btn" data-go="chars">Jogar</button>
+      <button class="btn" data-go="maps">Jogar</button>
       <div class="row menu-grid">
         <button class="btn ghost" data-go="shop">Loja</button>
         <button class="btn ghost" data-go="ach">Conquistas</button>
@@ -208,11 +208,17 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
     <div id="menu-foot"><span id="rec"></span><span id="ver"></span><span class="rapbox"><img data-ico="rap" alt=""><span class="rapn">0</span></span></div>
   </section>
 
+  <section id="s-maps" class="screen">
+    <h2>Onde vai ser a noite?</h2>
+    <div id="maplist" class="row"></div>
+    <button class="btn ghost small" data-go="menu">Voltar</button>
+  </section>
+
   <section id="s-chars" class="screen">
     <h2>Quem vai encarar a noite?</h2>
     <div id="charlist" class="row"></div>
     <div class="row" style="align-items:center;gap:22px;margin-top:6px">
-      <button class="btn ghost small" data-go="menu">Voltar</button>
+      <button class="btn ghost small" data-go="maps">Voltar</button>
       <button class="btn ghost small hidden" id="btn-nm">Modo Normal</button>
       <span class="rapbox"><img data-ico="rap" alt=""><span class="rapn">0</span></span>
     </div>
@@ -316,14 +322,15 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 <div id="cut"><p id="cut-txt"></p><span>Toque para pular</span></div>
 <div id="rotate"><div class="ph"></div>Gire o celular para jogar deitado</div>
 
-<script src="js/base.js?v=3"></script>
-<script src="js/dados.js?v=3"></script>
-<script src="js/conteudo.js?v=3"></script>
-<script src="js/mundo.js?v=3"></script>
-<script src="js/armas.js?v=3"></script>
-<script src="js/jogo.js?v=3"></script>
-<script src="js/desenho.js?v=3"></script>
-<script src="js/telas.js?v=3"></script>
-<script src="js/extra.js?v=3"></script>
+<script src="js/base.js?v=4"></script>
+<script src="js/dados.js?v=4"></script>
+<script src="js/conteudo.js?v=4"></script>
+<script src="js/mundo.js?v=4"></script>
+<script src="js/armas.js?v=4"></script>
+<script src="js/jogo.js?v=4"></script>
+<script src="js/desenho.js?v=4"></script>
+<script src="js/telas.js?v=4"></script>
+<script src="js/extra.js?v=4"></script>
+<script src="js/praia.js?v=4"></script>
 </body>
 </html>

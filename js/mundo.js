@@ -64,7 +64,7 @@ function newRunState() {
 function newPlayer(ch) {
   return { char: ch, x: MAPW / 2, y: MAPH / 2, r: 5, hp: 0, maxHp: 0, inv: 0, xp: 0, level: 1, next: need(1), fx: 1, fy: 0, moving: false, t: 0,
     weapons: [{ id: CHARS[ch].weapon, lvl: 1, cd: 0.4, ev: false }], pass: Object.assign({}, CHARS[ch].startPass || {}), st: null, kx: 0, ky: 0, vx: 0, vy: 0,
-    spr: SKINS[ch] && save.skin[ch] && save.ach[SKINS[ch].ach] ? ch + '_skin' : ch,
+    spr: skinSpr(ch),
     pet: save.pet && save.pets[save.pet] ? { k: save.pet, x: MAPW / 2 - 12, y: MAPH / 2 + 8, cd: 0, t: null, dive: 0 } : null };
 }
 function recalc() {
@@ -117,7 +117,7 @@ function num(x, y, v, set, crit) { if (nums.length > 90) nums.shift(); const n =
 /* ---------------- inimigos ---------------- */
 function spawnEnemy(type, x, y) {
   const d = EN[type];
-  const hm = (d.prop ? 1 : 1.8) * (d.boss ? (0.75 + 0.35 * G.adapt) * (1 + Math.max(0, G.time - 600) / 600) : d.seg || d.prop ? 1 : G.hpMult * (0.85 + 0.15 * G.adapt)) * (G.blood && !d.seg ? 1.3 : 1) * (G.nm && !d.seg ? (d.boss ? 1.5 : 1.6) : 1);
+  const hm = (d.prop ? 1 : 1.8) * (d.boss ? (0.75 + 0.35 * G.adapt) * (1 + Math.max(0, G.time * (MAP === 'praia' ? 1.25 : 1) - 600) / 600) : d.seg || d.prop ? 1 : G.hpMult * (0.85 + 0.15 * G.adapt)) * (G.blood && !d.seg ? 1.3 : 1) * (G.nm && !d.seg ? (d.boss ? 1.5 : 1.6) : 1);
   const e = { type, d, x, y, vx: 0, vy: 0, kx: 0, ky: 0, hp: d.hp * hm, r: d.r, spd: d.spd * (d.boss ? 1 : rand(0.88, 1.12)) * (G.blood ? 1.1 : 1), flash: 0, t: Math.random() * 9, cc: rand(1, 4), ch: 0, cdx: 0, cdy: 0, ang: 0, alive: true, root: 0, sc: d.scale || 1 };
   e.maxHp = e.hp; enemies.push(e); return e;
 }
@@ -156,6 +156,7 @@ function spawnFood() {
   }
 }
 function makeSpots() {
+  if (MAP === 'praia') { PRAIA.makeSpots(); return; }
   const place = (k, n) => { for (let i = 0; i < n; i++) { let x, y, t = 0;
     do { x = 80 + Math.random() * (MAPW - 160); y = 80 + Math.random() * (MAPH - 160); } while (t++ < 30 && (Math.hypot(x - MAPW / 2, y - MAPH / 2) < 160 || nearRiver(x, y, 30) || inVillage(x, y, 40) || inGrave(x, y, 40) || spots.some(s => dist2(s.x, s.y, x, y) < 220 * 220)));
     spots.push(k === 'capela' ? { k, x, y, charge: 80 } : { k, x, y, cd: 0, hold: 0 }); } };
@@ -189,7 +190,7 @@ function placeProps() {
   G.nProps = 0;
   for (let i = 0; i < 480; i++) {
     const x = 40 + Math.random() * (MAPW - 80), y = 40 + Math.random() * (MAPH - 80);
-    if (Math.hypot(x - MAPW / 2, y - MAPH / 2) < 120 || inWater(x, y) || nearRiver(x, y, 10)) continue;
+    if (Math.hypot(x - MAPW / 2, y - MAPH / 2) < 120 || inWater(x, y) || nearRiver(x, y, 10) || depth(x, y) > -150) continue;
     const r = Math.random(); spawnEnemy(r < 0.5 ? 'pote' : r < 0.85 ? 'cerca' : 'carroca', x, y); G.nProps++;
   }
 }
@@ -244,6 +245,7 @@ function spawnCart() {
   banner('Lá vem o carro de boi!');
 }
 function pickType(m) {
+  if (MAP === 'praia') return PRAIA.pick(m);
   const w = [['morcego', Math.max(2, 10 - m)], ['vagalume', m > 0.5 ? 4 : 0], ['saci', m >= 2 ? 1.6 + m * 0.25 : 0], ['mula', m >= 4 ? 0.5 + (m - 4) * 0.4 : 0], ['curupira', m >= 3 ? 1 + m * 0.12 : 0], ['trapalhona', m >= 1.5 ? 1.2 : 0], ['cabra', m >= 3 ? 0.4 + (m - 3) * 0.1 : 0], ['lambisgoia', m >= 5 ? 0.35 + (m - 5) * 0.04 : 0], ['coruja', m >= 6 ? 0.6 + (m - 6) * 0.05 : 0], ['tatu', m >= 8 && enemies.filter(e => e.type === 'tatu').length < 12 ? 0.5 + (m - 8) * 0.05 : 0], ['rezadeira', m >= 10 && enemies.filter(e => e.type === 'rezadeira').length < 3 ? 0.3 : 0], ['alma', [0, 0.6, 0.35, 0.35][EXH.phase()]]];
   for (const x of w) x[1] = EXH.phaseW(x[0], x[1]);
   let tot = 0; for (const x of w) tot += x[1]; let r = Math.random() * tot;
@@ -251,9 +253,9 @@ function pickType(m) {
 }
 function spawnBoss(b) {
   const [x, y] = edgePos(G.warn ? G.warn.ang : undefined); let e;
-  if (b.type === 'boitata') {
-    e = spawnEnemy('boitata', x, y); e.segs = []; let prev = e;
-    for (let i = 0; i < 18; i++) { const s = spawnEnemy('boitataSeg', x, y); s.parent = e; s.prev = prev; s.idx = i; e.segs.push(s); prev = s; }
+  if (EN[b.type].snake) {
+    e = spawnEnemy(b.type, x, y); e.segs = []; let prev = e;
+    for (let i = 0; i < 18; i++) { const s = spawnEnemy(EN[b.type].segType || 'boitataSeg', x, y); s.parent = e; s.prev = prev; s.idx = i; e.segs.push(s); prev = s; }
   } else e = spawnEnemy(b.type, x, y);
   e.bossName = b.name; G.boss = e; e.enter = 1.2;
   banner(b.name + ' apareceu!'); sfx('boss'); G.shake = 5;
@@ -330,31 +332,32 @@ function director(dt) {
     else if (hr < 0.45) G.adapt = Math.max(0.65, G.adapt - 0.12);
   }
   // curva esticada para a noite de 30 min: sobe sem parar até o amanhecer
-  G.hpMult = 1 + t / 200 + (t / 450) ** 2;
-  const ramp = Math.min(1, 0.75 + t / 160), cap = Math.min(560, 50 + t / 2.2 + (t / 300) ** 2 * 25), rate = Math.min(40, 2 + t / 26 + (t / 300) ** 2 * 1.5) * G.adapt * ramp * (G.nm ? 1.3 : 1) * (1 + 0.12 * (player.pass.olhogordo || 0)); // começo ágil, mas com inimigos fracos
+  const te = t * (MAP === 'praia' ? 1.25 : 1); // a praia é mais curta: a dificuldade sobe mais depressa
+  G.hpMult = 1 + te / 200 + (te / 450) ** 2;
+  const ramp = Math.min(1, 0.75 + t / 160), cap = Math.min(560, 50 + te / 2.2 + (te / 300) ** 2 * 25), rate = Math.min(40, 2 + te / 26 + (te / 300) ** 2 * 1.5) * G.adapt * ramp * (G.nm ? 1.3 : 1) * (1 + 0.12 * (player.pass.olhogordo || 0)); // começo ágil, mas com inimigos fracos
   G.spawnAcc = Math.min(5, G.spawnAcc + rate * dt);
   while (G.spawnAcc >= 1 && enemies.length - G.nProps < cap) { G.spawnAcc -= 1; const [x, y] = edgePos(); spawnEnemy(pickType(m), x, y); }
   const sw = Math.floor(t / 60);
   if (sw >= 1 && !G.events['s' + sw]) {
     G.events['s' + sw] = 1; const a = Math.random() * 6.283, n = Math.round((8 + m * 3.5) * G.adapt);
-    for (let i = 0; i < n; i++) { const [x, y] = edgePos(a); spawnEnemy('vagalume', x, y); }
+    for (let i = 0; i < n; i++) { const [x, y] = edgePos(a); spawnEnemy(MAP === 'praia' ? 'siri' : 'vagalume', x, y); }
   }
-  if (!G.blood && t >= 1380) { G.blood = true; banner('Lua de sangue!'); }
+  if (!G.blood && t >= RUN * 0.767) { G.blood = true; banner('Lua de sangue!'); }
   for (const b of BOSSES) {
     if (t >= b.t - 5 && !G.events['w' + b.type]) { G.events['w' + b.type] = 1; G.warn = { ang: Math.random() * 6.283, until: b.t }; banner(b.name + ' se aproxima...'); sfx('warn'); }
     if (t >= b.t && !G.bossDone[b.type]) { G.bossDone[b.type] = 1; spawnBoss(b); }
   }
-  if (G.rain > 0) { G.muriAcc += 1.2 * dt; while (G.muriAcc >= 6 && enemies.filter(e => e.type === 'muricoca').length < 36) { G.muriAcc -= 6; /* limite: eram 150 por chuva */ const a = Math.random() * 6.283; for (let i = 0; i < 6; i++) { const [x, y] = edgePos(a); spawnEnemy('muricoca', x, y); } } }
+  if (G.rain > 0 && MAP !== 'praia') { G.muriAcc += 1.2 * dt; while (G.muriAcc >= 6 && enemies.filter(e => e.type === 'muricoca').length < 36) { G.muriAcc -= 6; /* limite: eram 150 por chuva */ const a = Math.random() * 6.283; for (let i = 0; i < 6; i++) { const [x, y] = edgePos(a); spawnEnemy('muricoca', x, y); } } }
   if (G.inf && t >= RUN) { const k = Math.floor((t - RUN) / 150); if (!G.events['ib' + k]) { G.events['ib' + k] = 1; const b = BOSSES[k % BOSSES.length]; spawnBoss(b); G.boss.hp = G.boss.maxHp = G.boss.maxHp * (1 + (t - RUN) / 300); } }
   if (t >= G.pwT) { G.pwT = t + rand(45, 65) / player.st.luck; spawnPower(); }
-  if (t >= G.velhaT) { G.velhaT = t + rand(90, 130); const sd = Math.random() < 0.5 ? 1 : -1, x = clamp(player.x + player.fx * 170 - player.fy * 70 * sd, 20, MAPW - 20), y = clamp(player.y + player.fy * 120 + player.fx * 70 * sd, 20, MAPH - 20); if (!inRiver(x, y)) spawnEnemy('velha', x, y); }
+  if (t >= G.velhaT && MAP !== 'praia') { G.velhaT = t + rand(90, 130); const sd = Math.random() < 0.5 ? 1 : -1, x = clamp(player.x + player.fx * 170 - player.fy * 70 * sd, 20, MAPW - 20), y = clamp(player.y + player.fy * 120 + player.fx * 70 * sd, 20, MAPH - 20); if (!inRiver(x, y)) spawnEnemy('velha', x, y); }
   if (t >= G.eliteT) { G.eliteT = t + rand(40, 60) * Math.max(0.45, 1 - t / 1200); spawnElite(); }
   runEvents(t);
   G.foodT -= dt;
   if (G.foodT <= 0) { G.foodT = rand(16, 26) / player.st.luck; spawnFood(); }
 }
 function updEnemies(dt) {
-  const px = player.x, py = player.y, dm = (1 + Math.min(G.time, 900) / 480 + Math.max(0, G.time - 900) / 900) * Math.min(1, 0.6 + G.time / 150) * (G.nm ? 1.4 : 1);
+  const tt = G.time * (MAP === 'praia' ? 1.25 : 1), px = player.x, py = player.y, dm = (1 + Math.min(tt, 900) / 480 + Math.max(0, tt - 900) / 900) * Math.min(1, 0.6 + G.time / 150) * (G.nm ? 1.4 : 1);
   for (const e of enemies) {
     if (!e.alive) continue;
     if (e.d.prop) { if (e.d.neutral) EXH.wander(e, dt); e.flash -= dt; continue; }
@@ -365,7 +368,7 @@ function updEnemies(dt) {
       if (d > 7) { e.x = p.x - dx / d * 7; e.y = p.y - dy / d * 7; }
     } else {
       let tx = px, ty = py;
-      const dv = e.type === 'alma' ? defV() : null; if (dv) { let bv = null, bd = 1e12; for (const v of dv.vill) if (v.hp > 0) { const dd = dist2(v.x, v.y, e.x, e.y); if (dd < bd) { bd = dd; bv = v; } } if (bv) { tx = bv.x; ty = bv.y; if (bd < 100) bv.hp -= 10 * dt; } }
+      const dv = e.type === 'alma' || e.type === 'afogado' ? defV() : null; if (dv) { let bv = null, bd = 1e12; for (const v of dv.vill) if (v.hp > 0) { const dd = dist2(v.x, v.y, e.x, e.y); if (dd < bd) { bd = dd; bv = v; } } if (bv) { tx = bv.x; ty = bv.y; if (bd < 100) bv.hp -= 10 * dt; } }
       const dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy) || 1;
       let vx = dx / d * e.spd, vy = dy / d * e.spd;
       switch (e.type) {
@@ -467,6 +470,7 @@ function updEnemies(dt) {
       if (!e.d.fly && inWater(e.x, e.y)) { vx *= 0.5; vy *= 0.5; }
       if (!e.d.fly && inSand(e.x, e.y)) { vx *= 0.3; vy *= 0.3; }
       if (!e.d.fly && inRiver(e.x, e.y)) { vx *= 0.35; vy *= 0.35; }
+      if (MAP === 'praia' && !e.d.fly && !e.d.sea && !e.d.boss) { const k = PRAIA.wslow(e.x, e.y); vx *= k; vy *= k; }
       if (honeys.length && !e.d.boss && inHoney(e.x, e.y)) { vx *= 0.05; vy *= 0.05; }
       if (e.dance > 0) e.dance -= dt;
       if (e.root > 0) { e.root -= dt; const k = e.d.boss ? 0.5 : 0; vx *= k; vy *= k; }

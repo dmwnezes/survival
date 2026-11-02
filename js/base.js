@@ -12,7 +12,7 @@ function logErr(msg, stack) { try { localStorage.setItem(ERR_KEY, JSON.stringify
 addEventListener('error', e => logErr(e.message, e.error && e.error.stack));
 addEventListener('unhandledrejection', e => logErr(e.reason && e.reason.message || e.reason, e.reason && e.reason.stack));
 const TITLE = 'VISAGEM';
-const MAPW = 9600, MAPH = 6400, RUN = 1800; // 30 minutos
+const MAPW = 9600, MAPH = 6400; let RUN = 1800; // 30 minutos no sertão, 15 na praia (applyMap)
 const SPEED = Math.max(1, Math.min(10, +new URLSearchParams(location.search).get('speed') || 1));
 const $ = s => document.querySelector(s);
 const rand = (a, b) => a + Math.random() * (b - a);

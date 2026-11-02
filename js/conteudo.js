@@ -4,8 +4,18 @@
    Só dados e sprites; a lógica fica em extra.js, ligada ao
    núcleo pelas tabelas de ganchos abaixo.
    ========================================================= */
-const VERSION = 'v2.1';
+const VERSION = 'v3.0';
 const NOTES = [
+  ['v3.0', 'Mapa novo: Praia de Jangadas, com noite de 15 minutos. Escolha o mapa antes do personagem.',
+    'Mar com maré que sobe e desce, correnteza que arrasta, ilhas com baús e jangadas para navegar.',
+    'Na maré baixa a areia descoberta fica cheia de conchas e rapadura; na maré cheia o mar traz visagens.',
+    'Farol, falésias coloridas, coqueirais, cajueiros, vila de pescadores, barracas, bares de forró, piscinas naturais, igrejinhas e pedras furadas.',
+    'Visagens da praia: caranguejos, siris, gaivotas, afogados, Batatão, tubarão de areia, águas-vivas, piratas e a Mãe-d\'Água.',
+    'Chefões sorteados a cada noite entre Iara do Mar, Caboclo d\'Água, Polvo Gigante, Rei Sebastião, Caranguejo-Rei, Baleia-Fantasma e Holandês Voador; o Navio Fantasma fecha a noite; no Pesadelo, a Princesa-Serpente de Jericoacoara.',
+    'Eventos da praia: tempestade, ressaca, revoada de gaivotas, procissão de barcos, réveillon, pescaria da madrugada, navio pirata e forró pé-na-areia.',
+    'Armas da praia (Arpão, Rede de Pesca, Remo, Concha, Garrafa com Mensagem), itens da praia e duas sinergias que só valem lá.',
+    'Personagem novo: Jangadeiro. Visuais de praia para todos. Recordes e conquistas da praia.',
+    'Sons de ondas e gaivotas, pegadas na areia e reflexo da lua no mar.'],
   ['v2.1', 'Estradas redesenhadas em pixel, no mesmo estilo do rio.',
     'Fases da noite: Anoitecer, Meia-Noite, Madrugada e Antes da Aurora, cada uma com cor e visagens próprias.',
     'Descanso aos 15:00 com resumo da primeira metade e um bônus à escolha.',

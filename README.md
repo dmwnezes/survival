@@ -11,6 +11,7 @@ Jogo de navegador no estilo *survivors*: um vaqueiro perdido no sertão precisa 
 - Arma no nível 8 + o item certo = evolução.
 
 ## Conteúdo
+- **v3.0 — Praia de Jangadas:** segundo mapa (noite de 15 min), escolhido antes do personagem. Mar com maré, correnteza, ilhas, jangadas, farol, falésias, vila de pescadores, barracas, bares de forró e piscinas naturais; visagens e chefões do litoral (chefões sorteados por noite, Navio Fantasma no fim, Princesa-Serpente no Pesadelo); 8 eventos próprios; 5 armas e 4 itens só da praia; personagem Jangadeiro; visuais de praia; recordes e conquistas por mapa
 - **v2.1:** estradas em pixel no estilo do rio; fases da noite (Anoitecer, Meia-Noite, Madrugada, Antes da Aurora); descanso aos 15:00 com bônus à escolha; eventos vaquejada fantasma, bando de cangaceiros, baú enterrado, fogos da festa e enxurrada; lama nas estradas na chuva; engenhos (rapadura), feiras (melhoria por rapadura), oratórios (cura), currais e estações de trem; 6 sinergias novas; menu Mais; loja mais cara; ícone novo
 - **v2.0:** noite de 30 minutos com a dificuldade subindo até o fim; chefões espalhados pela noite: Lobisomem (5:00), Pai do Mato (7:30), Mapinguari (10:00), Corpo-Seco (12:00), Cuca (14:00), Boitatá (16:00), Comadre Fulozinha (19:00), Cabeça de Cuia (22:00), Labatut (25:00) e Besta-Fera (28:00); no Pesadelo, o Anhangá guarda o amanhecer
 - Segunda fase dos chefões, com cores em brasa e rajada de projéteis

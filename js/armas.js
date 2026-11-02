@@ -31,6 +31,7 @@ function updWeapons(dt) {
 function useAbility() {
   if (mode !== 'play' || !G || G.abCd > 0 || G.dawn) return;
   const c = CHARS[player.char], px = player.x, py = player.y, D = player.st.dmg; G.abCd = c.abCd * (1 - 0.15 * (player.pass.cuia || 0));
+  if (c.ab === 'jangada') { PRAIA.jangadaAb(); return; }
   if (c.ab === 'laco') {
     query(px, py, 130, Q); let n = 0;
     for (const e of Q.slice().sort((a, b) => dist2(a.x, a.y, px, py) - dist2(b.x, b.y, px, py))) {

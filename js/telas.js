@@ -35,6 +35,7 @@ function unlockAch(id) {
   if (id === 'noite5') save.chars.pescador = true;
   if (id === 'lobisomem') save.chars.forrozeira = true;
   if (id === 'amanhecer') save.chars.benzedeira = true;
+  if (ACH[id].char) save.chars[ACH[id].char] = true;
   persist(); toast('Conquista: ' + ACH[id].name); sfx('coin');
 }
 function goto(name) {
@@ -45,18 +46,25 @@ function goto(name) {
   else if (name === 'ach') { mode = 'ach'; renderAch(); }
   else if (name === 'stats') { mode = 'stats'; renderStats(); }
   else if (name === 'figs') { mode = 'figs'; renderFigs(); }
+  else if (name === 'maps') { mode = 'maps'; renderMaps(); }
   else if (name === 'mais') { mode = 'mais'; renderMenu(); }
   else if (name === 'notes') { mode = 'notes'; $('#notelist').innerHTML = NOTES.map(([v, ...ls]) => `<div class="panel item"><div class="tx"><b>${v}</b>${ls.map(l => `<span>• ${l}</span>`).join('')}</div></div>`).join(''); }
   refreshRap(); show(name);
 }
 function renderMenu() {
-  const b = save.best; $('#rec').textContent = b.time ? `Recorde: ${fmt(b.time)}, nível ${b.level}, ${b.kills} abates` : 'A lua está alta. Boa sorte, cabra.';
+  const b = save.best, bp = save.bestP; $('#rec').textContent = b.time || (bp && bp.time) ? `Recorde: sertão ${fmt(b.time)}${bp && bp.time ? ' · praia ' + fmt(bp.time) : ''}` : 'A lua está alta. Boa sorte, cabra.';
   $('#btn-sound').textContent = save.sound ? 'Som ligado' : 'Som desligado';
   $('#tip').textContent = 'Dica: ' + TIPS[(Math.random() * TIPS.length) | 0];
   $('#ver').textContent = VERSION; $('#btn-joy').textContent = save.joyFix ? 'Joystick fixo' : 'Joystick solto';
   let er = null; try { er = JSON.parse(localStorage.getItem(ERR_KEY)); } catch (e) {}
   $('#btn-err').classList.toggle('hidden', !er);
   const d = loadRun(), bc = $('#btn-continue'); bc.classList.toggle('hidden', !d); if (d) bc.textContent = `Continuar a noite (${fmt(d.G.time)})`;
+}
+function renderMaps() {
+  const box = $('#maplist'); box.innerHTML = '';
+  for (const id in MAPS) { const m = MAPS[id], b = id === 'praia' ? save.bestP : save.best, el = document.createElement('div'); el.className = 'panel char';
+    el.innerHTML = `<img class="cimg" src="${icon(m.ico)}" alt=""><b>${m.name}</b><span>${m.sub}</span><span class="lk">${b && b.time ? 'Recorde: ' + fmt(b.time) + ', nível ' + b.level : 'Ainda sem recorde'}</span><button class="btn">Ir</button>`;
+    el.querySelector('button').onclick = () => { save.map = id; persist(); goto('chars'); }; box.appendChild(el); }
 }
 function renderChars() {
   const nb = $('#btn-nm'), nmOk = !!save.ach.amanhecer, gm = nmOk ? save.gmode : 'normal'; nb.classList.toggle('hidden', !nmOk);
@@ -65,12 +73,12 @@ function renderChars() {
   const box = $('#charlist'); box.innerHTML = '';
   for (const id in CHARS) {
     const c = CHARS[id], ok = !!save.chars[id], el = document.createElement('div');
-    const sk = SKINS[id], skOk = sk && save.ach[sk.ach], cur = !!(save.skin[id] && skOk);
+    const opts = skinOpts(id), cv = skinSpr(id), curI = opts.findIndex(o => o.spr === cv), lockSk = [SKINS[id], SKINS2[id]].filter(s => s && !save.ach[s.ach]);
     el.className = 'panel char' + (ok ? '' : ' locked');
-    el.innerHTML = `<img class="cimg" src="${icon(cur ? id + '_skin' : id)}" alt=""><b>${c.name}</b><span>${WEAPONS[c.weapon].name} · nível ${clvl(id)}${clvl(id) < 10 ? '' : ' (máx.)'}</span><span>${c.bonus}</span><span>Habilidade: ${c.abName}</span><span class="pas">${CPAS[id]}</span>` +
+    el.innerHTML = `<img class="cimg" src="${icon(cv)}" alt=""><b>${c.name}</b><span>${WEAPONS[c.weapon].name} · nível ${clvl(id)}${clvl(id) < 10 ? '' : ' (máx.)'}</span><span>${c.bonus}</span><span>Habilidade: ${c.abName}</span><span class="pas">${CPAS[id]}</span>` +
       (ok ? `<button class="btn">Escolher</button>` : `<span class="lk">${c.unlockTxt} ou compre</span><button class="btn" ${save.rap < c.price ? 'disabled' : ''}>Comprar por ${c.price}</button>`) +
-      (!ok || !sk ? '' : skOk ? `<button class="btn ghost skin">Visual: ${cur ? sk.name : 'Normal'}</button>` : `<span class="lk">${sk.name}: conquista "${ACH[sk.ach].name}"</span>`);
-    const sb = el.querySelector('.skin'); if (sb) sb.onclick = () => { save.skin[id] = !cur; persist(); sfx('ui'); renderChars(); };
+      (!ok ? '' : opts.length > 1 ? `<button class="btn ghost skin">Visual: ${opts[Math.max(0, curI)].name}</button>` : '') + (ok && lockSk.length ? `<span class="lk">${lockSk[0].name}: conquista "${ACH[lockSk[0].ach].name}"</span>` : '');
+    const sb = el.querySelector('.skin'); if (sb) sb.onclick = () => { save.skin[id] = opts[(Math.max(0, curI) + 1) % opts.length].v; persist(); sfx('ui'); renderChars(); };
     el.querySelector('button').onclick = () => {
       if (ok) startRun(id);
       else if (save.rap >= c.price) { save.rap -= c.price; save.chars[id] = true; persist(); sfx('coin'); refreshRap(); renderChars(); }
@@ -125,9 +133,9 @@ const iconK = {};
 function iconBlack(k) { if (iconK[k]) return iconK[k]; const c = S[k].k, o = document.createElement('canvas'); o.width = c.width; o.height = c.height; const x = o.getContext('2d'); x.globalAlpha = 0.55; x.drawImage(c, 0, 0); return iconK[k] = o.toDataURL(); }
 function figSpr(t) { return t === 'boitata' ? 'boitataHead' : EN[t].spr; }
 function renderFigs() {
-  const keys = Object.keys(LENDAS), got = keys.filter(k => save.figs[k]).length;
+  const keys = Object.keys(LENDAS).sort((a, b) => PFIG.includes(a) - PFIG.includes(b)), got = keys.filter(k => save.figs[k]).length;
   $('#figs-sub').textContent = `${got} de ${keys.length} figurinhas. Derrote cada visagem pela primeira vez para liberar a dela.`;
-  $('#figlist').innerHTML = keys.map(k => save.figs[k] ? `<div class="panel item"><img src="${icon(figSpr(k))}" alt="" style="width:32px;height:32px"><div class="tx"><b>${ENAMES[k] || k}</b><span>${LENDAS[k]}</span></div></div>` : `<div class="panel item off"><img src="${iconBlack(figSpr(k))}" alt="" style="width:32px;height:32px"><div class="tx"><b>???</b><span>Ainda não encontrada.</span></div></div>`).join('');
+  $('#figlist').innerHTML = keys.map(k => (k === PFIG.find(x => keys.includes(x)) ? '<div class="panel item" style="grid-column:1/-1"><div class="tx"><b>Praia de Jangadas</b></div></div>' : '') + (save.figs[k] ? `<div class="panel item"><img src="${icon(figSpr(k))}" alt="" style="width:32px;height:32px"><div class="tx"><b>${ENAMES[k] || k}</b><span>${LENDAS[k]}</span></div></div>` : `<div class="panel item off"><img src="${iconBlack(figSpr(k))}" alt="" style="width:32px;height:32px"><div class="tx"><b>???</b><span>Ainda não encontrada.</span></div></div>`)).join('');
 }
 function renderStats() {
   const st = save.stats, top = o => Object.entries(o).sort((a, b) => b[1] - a[1])[0], n = v => Math.round(v).toLocaleString('pt-BR');
@@ -156,16 +164,16 @@ for (const fu of FUSIONS) { WEAPONS[fu.id] = { name: fu.name, desc: 'Fusão lend
 function flatW() { const out = []; for (const w of player.weapons) { if (w.fz) for (const p of w.parts) { p.fzB = true; out.push(p); } else out.push(w); } return out; }
 function hasW(id) { return flatW().some(w => w.id === id); }
 function refreshSyn(silent) {
-  for (const k in SYN) { const on = hasW(SYN[k].a) && (!SYN[k].b || hasW(SYN[k].b)); if (on && !G.syn[k] && !silent) { toast('Sinergia: ' + SYN[k].name + '!'); sfx('win'); } G.syn[k] = on; }
+  for (const k in SYN) { const on = (!SYN[k].map || SYN[k].map === MAP) && hasW(SYN[k].a) && (!SYN[k].b || hasW(SYN[k].b)); if (on && !G.syn[k] && !silent) { toast('Sinergia: ' + SYN[k].name + '!'); sfx('win'); } G.syn[k] = on; }
 }
 function rollOptions() {
   const p = player, pool = [];
   for (const w of p.weapons) { const W = WEAPONS[w.id]; if (!w.ev && w.lvl >= WMAX && p.pass[W.evo]) pool.push({ k: 'evo', id: w.id, path: 'a' }, { k: 'evo', id: w.id, path: 'f' }); }
   for (const w of p.weapons) if (w.lvl < WMAX && !w.ev) pool.push({ k: 'wup', id: w.id, w: 3 });
-  if (p.weapons.length < SLOTS) for (const id in WEAPONS) if (!WEAPONS[id].fusion && !hasW(id)) pool.push({ k: 'wnew', id, w: 2 });
+  if (p.weapons.length < SLOTS) for (const id in WEAPONS) if (!WEAPONS[id].fusion && !hasW(id) && (!WEAPONS[id].map || WEAPONS[id].map === MAP)) pool.push({ k: 'wnew', id, w: 2 });
   for (const fu of FUSIONS) { const A = p.weapons.find(w => w.id === fu.a && w.ev), B = p.weapons.find(w => w.id === fu.b && w.ev); if (A && B) pool.push({ k: 'fuse', f: fu }); }
   const pc = Object.keys(p.pass).length;
-  for (const id in PASSIVES) { const l = p.pass[id] || 0; if (l > 0 && l < PASSIVES[id].max) pool.push({ k: 'pup', id, w: 2 }); else if (l === 0 && pc < SLOTS) pool.push({ k: 'pnew', id, w: 1.5 }); }
+  for (const id in PASSIVES) { if (PASSIVES[id].map && PASSIVES[id].map !== MAP && !p.pass[id]) continue; const l = p.pass[id] || 0; if (l > 0 && l < PASSIVES[id].max) pool.push({ k: 'pup', id, w: 2 }); else if (l === 0 && pc < SLOTS) pool.push({ k: 'pnew', id, w: 1.5 }); }
   // com muitas armas e itens no jogo, as novidades não podem abafar as melhorias do que você já tem
   const nW = pool.filter(o => o.k === 'wnew').length, nP = pool.filter(o => o.k === 'pnew').length;
   for (const o of pool) { if (o.k === 'wnew' && nW > 8) o.w = 2 * 8 / nW; if (o.k === 'pnew' && nP > 8) o.w = 1.5 * 8 / nP; }
@@ -307,7 +315,7 @@ const RUN_KEY = 'visagem-run-v1';
 function saveRun() {
   if (!G || !player || G.dawn || !['play', 'pause', 'level', 'chest', 'rest'].includes(mode)) return;
   const data = { v: 1, G: Object.assign({}, G, { boss: null }), boss: G.boss && G.boss.alive ? { type: G.boss.type, f: G.boss.hp / G.boss.maxHp } : null,
-    ex: EXW, p: { char: player.char, spr: player.spr, x: player.x, y: player.y, hp: player.hp, xp: player.xp, level: player.level, next: player.next, weapons: player.weapons.map(w => w.fz ? { id: w.id, lvl: w.lvl, ev: w.ev, fz: true, parts: w.parts.map(p => ({ id: p.id, lvl: p.lvl, ev: p.ev })) } : { id: w.id, lvl: w.lvl, ev: w.ev }), pass: player.pass },
+    map: MAP, sea: SEA, isl: islands, ex: EXW, p: { char: player.char, spr: player.spr, x: player.x, y: player.y, hp: player.hp, xp: player.xp, level: player.level, next: player.next, weapons: player.weapons.map(w => w.fz ? { id: w.id, lvl: w.lvl, ev: w.ev, fz: true, parts: w.parts.map(p => ({ id: p.id, lvl: p.lvl, ev: p.ev })) } : { id: w.id, lvl: w.lvl, ev: w.ev }), pass: player.pass },
     spots, acudes, traps, villages, roads, graves, riv: RIV, items: items.filter(i => i.kind !== 'xp').map(i => ({ x: i.x, y: i.y, kind: i.kind, v: i.v, food: !!i.food })) };
   try { localStorage.setItem(RUN_KEY, JSON.stringify(data)); } catch (e) {}
 }
@@ -316,23 +324,28 @@ function clearRun() { try { localStorage.removeItem(RUN_KEY); } catch (e) {} }
 function resumeRun() {
   const d = loadRun(); if (!d) return;
   audioInit(); resetLists(); lastChar = d.p.char;
-  G = Object.assign(newRunState(), d.G, { boss: null });
+  MAP = d.map === 'praia' ? 'praia' : 'sertao'; if (MAP === 'praia') { SEA = d.sea || SEA; islands = d.isl || []; PRAIA.makeWorld(); } else if (WORLD !== 'sertao') { makeWorld(); WORLD = 'sertao'; }
+  G = Object.assign(newRunState(), d.G, { boss: null }); applyMap(false);
   player = newPlayer(d.p.char);
   Object.assign(player, { spr: d.p.spr, x: d.p.x, y: d.p.y, xp: d.p.xp, level: d.p.level, next: d.p.next, pass: d.p.pass, weapons: d.p.weapons.map(w => Object.assign({ cd: 0.5 }, w, w.parts ? { parts: w.parts.map(p => Object.assign({ cd: 0.5 }, p)) } : {})) });
   recalc(); player.hp = Math.min(player.maxHp, d.p.hp);
-  spots.push(...d.spots); acudes.push(...d.acudes); traps.push(...(d.traps || [])); villages = d.villages || (d.village ? [d.village] : []); roads = d.roads || []; graves = d.graves || []; if (d.riv) RIV = d.riv; buildRoads();
+  spots.push(...d.spots); acudes.push(...d.acudes); traps.push(...(d.traps || [])); villages = d.villages || (d.village ? [d.village] : []); roads = d.roads || []; graves = d.graves || []; if (d.riv) RIV = d.riv; buildRoads(MAP === 'praia' ? PCOL : null);
   if (d.ex) { EXW = d.ex; buildExtraGrids(); } else makeExtraWorld();
   placeProps();
   for (const i of d.items) { drop(i.x, i.y, i.kind, i.v); items[items.length - 1].food = i.food; }
-  if (d.boss) { spawnBoss(BOSSES.concat(SECRET_BOSS).find(x => x.type === d.boss.type)); G.boss.hp = G.boss.maxHp * d.boss.f; }
+  if (d.boss) { spawnBoss(BOSSES.concat(SECRET_BOSS, PRAIA_SECRET).find(x => x.type === d.boss.type)); G.boss.hp = G.boss.maxHp * d.boss.f; }
   refreshSlots(); refreshSyn(true); hud(true); mode = 'play'; pauseGame();
 }
 
 /* ---------------- fluxo da partida ---------------- */
 function resetLists() { for (const a of [enemies, projs, pools, waves, items, parts, nums, fx, marks, goos, spots, carts, acudes, traps, whirls, critters, honeys, trails, stars, roots, muds, fires, pilgrims]) a.length = 0; villages = []; roads = []; graves = []; grid.clear(); EXH.reset(); bq.length = 0; clearTimeout(bannerT); $('#banner').classList.remove('on'); }
+// visuais: 0 normal, 1 do sertão, 2 da praia (save antigo guardava true/false)
+function skinOpts(id) { const o = [{ v: 0, name: 'Normal', spr: id }]; if (SKINS[id] && save.ach[SKINS[id].ach]) o.push({ v: 1, name: SKINS[id].name, spr: id + '_skin' }); if (SKINS2[id] && save.ach[SKINS2[id].ach]) o.push({ v: 2, name: SKINS2[id].name, spr: id + '_skin2' }); return o; }
+function skinSpr(id) { const v = save.skin[id] === true ? 1 : save.skin[id] || 0, o = skinOpts(id).find(x => x.v === v); return o ? o.spr : id; }
+function setupMap() { MAP = save.map === 'praia' ? 'praia' : 'sertao'; if (MAP === 'praia') { PRAIA.newSea(); PRAIA.makeWorld(); } else if (WORLD !== 'sertao') { makeWorld(); WORLD = 'sertao'; } }
 function startRun(ch) {
-  audioInit(); lastChar = ch; resetLists(); clearRun();
-  G = newRunState(); player = newPlayer(ch); rollRiver(); recalc(); player.hp = player.maxHp; makeSpots(); placeProps(); refreshSyn(true);
+  audioInit(); lastChar = ch; resetLists(); clearRun(); setupMap();
+  G = newRunState(); applyMap(true); player = newPlayer(ch); rollRiver(); recalc(); player.hp = player.maxHp; makeSpots(); placeProps(); refreshSyn(true);
   refreshSlots(); hideScreens(); hud(true); mode = 'play'; last = performance.now();
   if (!save.introSeen) { save.introSeen = true; persist(); startCut('intro', () => { hud(true); mode = 'play'; last = performance.now(); }); }
   if (isTouch && !document.fullscreenElement && document.documentElement.requestFullscreen) {
@@ -361,14 +374,14 @@ function resumeGame() { if (mode !== 'pause') return; hideScreens(); mode = 'pla
 function endRun(win) {
   if (mode === 'over' || !G) return; mode = 'over'; joy = null;
   const t = G.inf ? G.time : Math.min(G.time, RUN), earned = (Math.floor(G.kills / 60) + Math.floor(t / 60) * 2 + G.rap) * (G.nm ? 2 : 1);
-  save.rap += earned; const b = save.best;
+  save.rap += earned; const b = MAP === 'praia' ? (save.bestP = save.bestP || { time: 0, kills: 0, level: 0 }) : save.best;
   b.time = Math.max(b.time, Math.min(t, RUN)); if (G.inf) b.inf = Math.max(b.inf || 0, t); save.cxp[player.char] = (save.cxp[player.char] || 0) + Math.round(t / 6 + G.kills / 50); b.kills = Math.max(b.kills, G.kills); b.level = Math.max(b.level, player.level);
   const st = save.stats; st.runs++; if (win) st.wins++; st.time += t; st.kills += G.kills;
   for (const k in G.byEnemy) st.enemies[k] = (st.enemies[k] || 0) + G.byEnemy[k];
   for (const k in G.dmg) st.weapons[k] = (st.weapons[k] || 0) + G.dmg[k];
   clearRun();
-  if (win) unlockAch('amanhecer');
-  if (win && G.nm) unlockAch('pesadelo');
+  if (win) unlockAch(MAP === 'praia' ? 'praianoite' : 'amanhecer');
+  if (win && G.nm && MAP !== 'praia') unlockAch('pesadelo');
   persist();
   $('#over-title').textContent = win ? 'O sol nasceu!' : 'A visagem te pegou';
   const dz = $('#over-dance'); dz.classList.toggle('hidden', !win); if (win) dz.src = icon(player.spr);
