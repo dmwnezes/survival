@@ -211,7 +211,7 @@ function updProjs(dt) {
       if (q >= 1) {
         const wet = G.syn.acude && inWater(p.tx, p.ty); if (wet) { p.rad *= 2; p.root *= 1.5; }
         query(p.tx, p.ty, p.rad + 16, Q);
-        for (const e of Q) if (e.alive && dist2(p.tx, p.ty, e.x, e.y) < (p.rad + e.r) ** 2) { (e.parent || e).root = p.root; hurt(e, p.dmg, undefined, undefined, 'tarrafa'); }
+        for (const e of Q) if (e.alive && dist2(p.tx, p.ty, e.x, e.y) < (p.rad + e.r) ** 2) { const t = e.parent || e; t.root = p.root; if (G.syn.salmoura) { t.saltT = G.time + 4; t.saltK = 1.25; } hurt(e, p.dmg, undefined, undefined, 'tarrafa'); }
         fx.push({ k: 'net', x: p.tx, y: p.ty, r: p.rad, life: p.root, max: p.root }); p.life = 0;
       }
     } else if (p.k === 'pocao') {

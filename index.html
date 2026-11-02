@@ -151,6 +151,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 .slot.cursed{border-color:#8160a8}
 #nextboss{position:absolute;left:50%;top:calc(13px + clamp(28px,7vh,40px));transform:translateX(-50%);font-size:16px;color:var(--red);text-shadow:1px 1px 0 #000;white-space:nowrap}
 #ver{font-size:16px;color:var(--dim)}
+#nextboss.ph{color:var(--dim)}
 #notelist .item .tx span{font-size:18px}
 #abil{position:absolute;right:max(2.5vh,env(safe-area-inset-right));bottom:calc(22vh + 10px);width:76px;height:76px;border-radius:50%;pointer-events:auto;background:rgba(22,29,69,.88);border:3px solid var(--acc);color:var(--moon);font-family:inherit;font-size:21px;line-height:1;overflow:hidden;cursor:pointer;padding:0}
 #abil.cool{border-color:var(--line)}
@@ -200,13 +201,7 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
       <div class="row menu-grid">
         <button class="btn ghost" data-go="shop">Loja</button>
         <button class="btn ghost" data-go="ach">Conquistas</button>
-        <button class="btn ghost" data-go="stats">Estatísticas</button>
-        <button class="btn ghost" data-go="figs">Figurinhas</button>
-        <button class="btn ghost" id="btn-sound">Som ligado</button>
-        <button class="btn ghost hidden" id="btn-install">Instalar no celular</button>
-        <button class="btn ghost" data-go="notes">Novidades</button>
-        <button class="btn ghost" id="btn-joy">Joystick solto</button>
-        <button class="btn ghost hidden" id="btn-err" style="color:var(--red)">Copiar último erro</button>
+        <button class="btn ghost" data-go="mais">Mais</button>
       </div>
     </div>
     <p id="tip" class="sub" style="font-size:20px;max-width:min(680px,90vw);margin-top:6px"></p>
@@ -240,19 +235,39 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
     <h2>Figurinhas das lendas</h2>
     <p class="sub" id="figs-sub"></p>
     <div id="figlist" class="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;max-height:60vh"></div>
+    <button class="btn ghost small" data-go="mais">Voltar</button>
+  </section>
+
+  <section id="s-mais" class="screen">
+    <h2>Mais</h2>
+    <div class="row menu-grid">
+      <button class="btn ghost" data-go="stats">Estatísticas</button>
+      <button class="btn ghost" data-go="figs">Figurinhas</button>
+      <button class="btn ghost" data-go="notes">Novidades</button>
+      <button class="btn ghost" id="btn-sound">Som ligado</button>
+      <button class="btn ghost" id="btn-joy">Joystick solto</button>
+      <button class="btn ghost hidden" id="btn-install">Instalar no celular</button>
+      <button class="btn ghost hidden" id="btn-err" style="color:var(--red)">Copiar último erro</button>
+    </div>
     <button class="btn ghost small" data-go="menu">Voltar</button>
+  </section>
+
+  <section id="s-rest" class="screen">
+    <h2>Meia-noite passou</h2>
+    <p class="sub" id="rest-sub"></p>
+    <div id="rest-opts" class="row"></div>
   </section>
 
   <section id="s-notes" class="screen">
     <h2>Novidades</h2>
     <div id="notelist" class="list" style="max-height:62vh"></div>
-    <button class="btn ghost small" data-go="menu">Voltar</button>
+    <button class="btn ghost small" data-go="mais">Voltar</button>
   </section>
 
   <section id="s-stats" class="screen">
     <h2>Estatísticas</h2>
     <div id="statlist" class="list"></div>
-    <button class="btn ghost small" data-go="menu">Voltar</button>
+    <button class="btn ghost small" data-go="mais">Voltar</button>
   </section>
 
   <section id="s-roleta" class="screen">
@@ -301,14 +316,14 @@ h2{font-size:clamp(30px,8vh,52px);font-weight:400;color:var(--moon);text-shadow:
 <div id="cut"><p id="cut-txt"></p><span>Toque para pular</span></div>
 <div id="rotate"><div class="ph"></div>Gire o celular para jogar deitado</div>
 
-<script src="js/base.js?v=2"></script>
-<script src="js/dados.js?v=2"></script>
-<script src="js/conteudo.js?v=2"></script>
-<script src="js/mundo.js?v=2"></script>
-<script src="js/armas.js?v=2"></script>
-<script src="js/jogo.js?v=2"></script>
-<script src="js/desenho.js?v=2"></script>
-<script src="js/telas.js?v=2"></script>
-<script src="js/extra.js?v=2"></script>
+<script src="js/base.js?v=3"></script>
+<script src="js/dados.js?v=3"></script>
+<script src="js/conteudo.js?v=3"></script>
+<script src="js/mundo.js?v=3"></script>
+<script src="js/armas.js?v=3"></script>
+<script src="js/jogo.js?v=3"></script>
+<script src="js/desenho.js?v=3"></script>
+<script src="js/telas.js?v=3"></script>
+<script src="js/extra.js?v=3"></script>
 </body>
 </html>

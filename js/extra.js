@@ -4,7 +4,7 @@
    chama estas funções pelas tabelas de ganchos (conteudo.js).
    ========================================================= */
 const ewaves = [], meteors = [];
-let EXW = { forests: [], corn: [], marks: [], npcs: [] }, treeGrid = new Map(), roadSm = [], roadGrid = new Map(), pebGrid = new Map(), cornImg = [];
+let EXW = { forests: [], corn: [], marks: [], npcs: [] }, treeGrid = new Map(), roadSm = [], cornImg = [];
 EN.morcego.fly = 1; EN.vagalume.fly = 1; EN.muricoca.fly = 1; // voadores passam por cima do rio e dos espinhos
 EN.ilusao = { hp: 30, spd: 52, dmg: 12, xp: 0, r: 10, spr: 'anhanga', scale: 0.9, col: '#e8eeff' };
 const onScr2 = (x, y, m) => Math.abs(x - player.x) < VW / 2 + m && Math.abs(y - player.y) < VH / 2 + m; // não depende da câmera (vale também na simulação)
@@ -14,16 +14,16 @@ const wsFor = id => { const w = flatW().find(x => x.id === id); if (!w) return n
 /* ---------------- armas novas: status ---------------- */
 WB2.pilao = (l, ev) => { const s = { dmg: 18 + 5.5 * (l - 1), cd: 3.6 - 0.12 * l, n: 1 + (l >= 5) + (l >= 8), rad: 26 + 1.5 * l, root: 0.8, area: 1 }; if (ev) { s.dmg *= 1.1; s.rad *= 1.25; s.wave = 1; } return s; };
 WB2.boi = (l, ev) => { const s = { dmg: 22 + 7 * (l - 1), cd: 4 - 0.15 * l, n: 1 + (l >= 4) + (l >= 7), len: 220, spd: 260, area: 1 }; if (ev) { s.dmg *= 1.25; s.len = 320; s.big = 1; } return s; };
-WB2.sal = (l, ev) => { const s = { dmg: 14 + 5 * (l - 1), cd: 1.3 - 0.05 * l, n: 6 + Math.floor(l / 3), spd: 260, life: 0.26, salt: 1.25, area: 1 }; if (ev) { s.n += 3; s.life = 0.34; s.salt = 1.35; s.dmg *= 1.2; } return s; };
+WB2.sal = (l, ev) => { const s = { dmg: 19 + 6.5 * (l - 1), cd: 1.2 - 0.05 * l, n: 6 + Math.floor(l / 3), spd: 280, life: 0.32, salt: 1.25, area: 1 }; if (ev) { s.n += 3; s.life = 0.34; s.salt = 1.35; s.dmg *= 1.2; } return s; };
 WB2.arapuca = (l, ev) => { const s = { dmg: 45 + 13 * (l - 1), cd: 2 - 0.08 * l, max: 3 + Math.floor(l / 3), rad: 22, root: 1.5, area: 1 }; if (ev) { s.rad *= 1.5; s.root = 2.5; s.dmg *= 1.3; s.sand = 1; s.max += 2; } return s; };
 WB2.marimbondo = (l, ev) => { const s = { dmg: 2.2 + 0.6 * (l - 1), cd: 2.8 - 0.1 * l, n: 1 + Math.floor(l / 4), life: 4, r: 16, area: 1 }; if (ev) { s.life = 6; s.r *= 1.35; s.dmg *= 1.3; s.spread = 1; } return s; };
 WB2.foice = (l, ev) => { const s = { dmg: 20 + 6 * (l - 1), cd: 1.8 - 0.07 * l, rad: 52 + 2 * l, arc: 1.6, exec: 0.12, area: 1 }; if (ev) { s.arc = 3.15; s.exec = 0.2; s.dmg *= 1.3; } return s; };
 WB2.trovoada = (l, ev) => { const s = { dmg: 24 + 8 * (l - 1), cd: 3.4 - 0.13 * l, n: 2 + Math.floor(l / 2), rad: 14, area: 1 }; if (ev) { s.n += 2; s.rad = 24; s.dmg *= 1.1; } return s; };
 WB2.piao = (l, ev) => { const s = { dmg: 3 + 1 * (l - 1), cd: 3.6 - 0.1 * l, n: 1 + Math.floor(l / 4), life: 4, pull: 40, r: 14, area: 1 }; if (ev) { s.life = 5.5; s.pull = 60; s.dmg *= 1.1; } return s; };
 WB2.pipa = (l, ev) => { const s = { dmg: 7 + 2.8 * (l - 1), n: 1 + Math.floor(l / 5), len: 80, tick: 0.35, area: 1 }; if (ev) { s.len = 115; s.n += 1; s.dmg *= 1.5; } return s; };
-WB2.tatu = (l, ev) => { const s = { dmg: 20 + 6 * (l - 1), n: 2 + Math.floor(l / 3), regen: 6 - 0.3 * l, area: 1 }; if (ev) { s.n += 2; s.regen *= 0.6; s.boom = 1; } return s; };
+WB2.tatu = (l, ev) => { const s = { dmg: 26 + 8 * (l - 1), n: 2 + Math.floor(l / 3), regen: 6 - 0.3 * l, area: 1 }; if (ev) { s.n += 2; s.regen *= 0.6; s.boom = 1; } return s; };
 WB2.bola = (l, ev) => { const s = { dmg: 11 + 4 * (l - 1), cd: 3 - 0.1 * l, n: 1 + Math.floor(l / 3), spd: 170, life: 6, r: 4, area: 1 }; if (ev) { s.spd = 220; s.r = 6; s.n += 1; s.dmg *= 1.3; } return s; };
-WB2.espelho = (l, ev) => { const s = { dmg: 5 + 1.7 * (l - 1), n: 1 + Math.floor(l / 5), len: 90 + 4 * l, tick: 0.3, spin: 1.6, area: 1 }; if (ev) { s.n += 1; s.len *= 1.3; s.dmg *= 1.4; } return s; };
+WB2.espelho = (l, ev) => { const s = { dmg: 5 + 1.7 * (l - 1), n: 1 + Math.floor(l / 5), len: 90 + 4 * l, tick: 0.3, spin: 1.6, area: 1 }; if (ev) { s.n += 1; s.len *= 1.15; s.dmg *= 1.4; } return s; };
 WB2.pifano = (l, ev) => { const s = { dmg: 12 + 4.5 * (l - 1), cd: 1 - 0.035 * l, n: 3 + Math.floor(l / 3), spd: 150, pierce: 1, area: 1 }; if (ev) { s.n += 2; s.pierce = 3; } return s; };
 
 /* ---------------- armas novas: disparo ---------------- */
@@ -44,42 +44,45 @@ FIRE2.foice = (w, s) => {
 };
 FIRE2.trovoada = (w, s) => {
   const c = enemies.filter(e => e.alive && !e.d.prop && onScr2(e.x, e.y, 6));
-  for (let i = 0; i < s.n && c.length; i++) { const e = c.splice((Math.random() * c.length) | 0, 1)[0], R = s.rad * s.area; query(e.x, e.y, R + 14, Q); for (const o of Q) if (o.alive && dist2(o.x, o.y, e.x, e.y) < (R + o.r) ** 2) hurt(o, s.dmg, undefined, undefined, 'trovoada'); fx.push({ k: 'raio', x: e.x, y: e.y, life: 0.25, max: 0.25, sd: Math.random() * 99 }); }
+  for (let i = 0; i < s.n && c.length; i++) { const e = c.splice((Math.random() * c.length) | 0, 1)[0], R = s.rad * s.area; query(e.x, e.y, R + 14, Q); for (const o of Q) if (o.alive && dist2(o.x, o.y, e.x, e.y) < (R + o.r) ** 2) hurt(o, s.dmg, undefined, undefined, 'trovoada'); fx.push({ k: 'raio', x: e.x, y: e.y, life: 0.25, max: 0.25, sd: Math.random() * 99 });
+    if (G.syn.tempestade) { const pts = [[e.x, e.y]]; let cur = e; const hit = new Set([e]); for (let j = 0; j < 2; j++) { query(cur.x, cur.y, 70, Q); let nx = null, nd = 70 * 70; for (const o of Q) if (o.alive && !o.d.prop && !hit.has(o)) { const dd = dist2(cur.x, cur.y, o.x, o.y); if (dd < nd) { nd = dd; nx = o; } } if (!nx) break; hit.add(nx); hurt(nx, s.dmg * 0.5, undefined, undefined, 'trovoada'); pts.push([nx.x, nx.y]); cur = nx; } if (pts.length > 1) fx.push({ k: 'chain', pts, life: 0.2, max: 0.2 }); } }
   G.flash = Math.max(G.flash || 0, 0.12); sfx('zap');
 };
 FIRE2.piao = (w, s) => { for (let i = 0; i < s.n; i++) { const t = randomNear(player.x, player.y, 150), a = Math.random() * 6.283; projs.push({ k: 'piao', x: player.x, y: player.y, tx: t ? t.x : player.x + Math.cos(a) * 70, ty: t ? t.y : player.y + Math.sin(a) * 50, wt: 0.6, life: s.life, dmg: s.dmg, pull: s.pull * s.area, r: s.r * s.area, tk: 0 }); } sfx('swing'); };
 FIRE2.bola = (w, s) => { let have = projs.filter(p => p.k === 'bola').length; for (; have < s.n; have++) { const a = Math.random() * 6.283; projs.push({ k: 'bola', x: player.x, y: player.y, vx: Math.cos(a) * s.spd, vy: Math.sin(a) * s.spd, life: s.life, dmg: s.dmg, r: s.r * Math.sqrt(s.area), hit: new Map() }); } };
-FIRE2.pifano = (w, s) => { for (let i = 0; i < s.n; i++) { const a = Math.random() * 6.283; projs.push({ k: 'nota', x: player.x, y: player.y - 4, vx: Math.cos(a) * s.spd, vy: Math.sin(a) * s.spd, spd: s.spd, life: 3, dmg: s.dmg, pierce: s.pierce, hit: new Set(), tgt: null }); } sfx('pick'); };
+FIRE2.pifano = (w, s) => { for (let i = 0; i < s.n; i++) { const a = Math.random() * 6.283; projs.push({ k: 'nota', x: player.x, y: player.y - 4, vx: Math.cos(a) * s.spd, vy: Math.sin(a) * s.spd, spd: s.spd, life: 3, dmg: s.dmg, pierce: s.pierce + (G.syn.cantoria ? 2 : 0), hit: new Set(), tgt: null }); } sfx('pick'); };
 
 /* ---------------- armas contínuas ---------------- */
 function segDist2(px, py, ax, ay, bx, by) { const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy || 1, t = clamp(((px - ax) * dx + (py - ay) * dy) / L, 0, 1), x = ax + dx * t - px, y = ay + dy * t - py; return x * x + y * y; }
-function beamHit(w, ax, ay, bx, by, dmg, tick, src, kx, ky) {
+function beamHit(w, ax, ay, bx, by, dmg, tick, src, kx, ky, onHit) {
   query((ax + bx) / 2, (ay + by) / 2, Math.hypot(bx - ax, by - ay) / 2 + 12, Q);
-  for (const e of Q) { if (!e.alive || e.d.prop) continue; if (segDist2(e.x, e.y, ax, ay, bx, by) < (e.r + 2) ** 2 && (w.hit.get(e) || -9) < G.time - tick) { w.hit.set(e, G.time); hurt(e, dmg, kx, ky, src); } }
+  for (const e of Q) { if (!e.alive || e.d.prop) continue; if (segDist2(e.x, e.y, ax, ay, bx, by) < (e.r + 2) ** 2 && (w.hit.get(e) || -9) < G.time - tick) { w.hit.set(e, G.time); hurt(e, dmg, kx, ky, src); if (onHit) onHit(e); } }
 }
 UPD2.pipa = (w, s, dt) => {
   w.t = (w.t || 0) + dt; w.hit = w.hit || new Map(); w.kites = w.kites || []; const L = s.len * s.area;
   for (let i = 0; i < s.n; i++) { const a = w.t * 0.9 + i * 6.283 / s.n, k = 0.75 + 0.25 * Math.sin(w.t * 1.7 + i), x = player.x + Math.cos(a) * L * k, y = player.y + Math.sin(a) * L * 0.7 * k - 18;
-    w.kites[i] = { x, y }; beamHit(w, player.x, player.y - 4, x, y, s.dmg, s.tick, 'pipa'); query(x, y, 16, Q); for (const e of Q) if (e.alive && !e.d.prop && dist2(x, y, e.x, e.y) < (e.r + 5) ** 2 && (w.hit.get(e) || -9) < G.time - s.tick) { w.hit.set(e, G.time); hurt(e, s.dmg * 2, 0, 0, 'pipa'); } }
+    w.kites[i] = { x, y }; beamHit(w, player.x, player.y - 4, x, y, s.dmg, s.tick, 'pipa', 0, 0, G.syn.linha ? e => { const t = e.parent || e; t.root = Math.max(t.root, 0.5); } : null); query(x, y, 16, Q); for (const e of Q) if (e.alive && !e.d.prop && dist2(x, y, e.x, e.y) < (e.r + 5) ** 2 && (w.hit.get(e) || -9) < G.time - s.tick) { w.hit.set(e, G.time); hurt(e, s.dmg * 2, 0, 0, 'pipa'); } }
   w.kites.length = s.n; if (w.hit.size > 600) w.hit.clear();
 };
 UPD2.espelho = (w, s, dt) => {
-  w.ang = ((w.ang || 0) + s.spin * dt) % 6.283; w.hit = w.hit || new Map(); const L = s.len * s.area;
+  w.ang = ((w.ang || 0) + s.spin * dt) % 6.283; w.hit = w.hit || new Map(); const L = mirLen(s);
   for (let i = 0; i < s.n; i++) { const a = w.ang + i * 6.283 / s.n, dx = Math.cos(a), dy = Math.sin(a); beamHit(w, player.x, player.y - 3, player.x + dx * L, player.y - 3 + dy * L, s.dmg, s.tick, 'espelho', dx * 20, dy * 20); }
   if (w.hit.size > 600) w.hit.clear();
 };
+function mirLen(s) { return s.len * Math.min(s.area, 1.15); } // o caminho da Área não estica o raio além da tela
 UPD2.tatu = (w, s, dt) => {
   if (w.plates == null) w.plates = s.n; if (w.plates > s.n) w.plates = s.n;
   if (w.plates < s.n) { w.rg = (w.rg || 0) + dt; if (w.rg >= s.regen) { w.rg = 0; w.plates++; } }
   w.ang = ((w.ang || 0) + 3 * dt) % 6.283; w.hit = w.hit || new Map();
-  for (let i = 0; i < w.plates; i++) { const a = w.ang + i * 6.283 / w.plates, x = player.x + Math.cos(a) * 15, y = player.y + Math.sin(a) * 12; query(x, y, 14, Q); for (const e of Q) if (e.alive && !e.d.prop && dist2(x, y, e.x, e.y) < (e.r + 4) ** 2 && (w.hit.get(e) || -9) < G.time - 0.5) { w.hit.set(e, G.time); hurt(e, s.dmg * 0.3, Math.cos(a) * 80, Math.sin(a) * 80, 'tatu'); } }
+  for (let i = 0; i < w.plates; i++) { const a = w.ang + i * 6.283 / w.plates, x = player.x + Math.cos(a) * 18, y = player.y + Math.sin(a) * 14; query(x, y, 18, Q); for (const e of Q) if (e.alive && !e.d.prop && dist2(x, y, e.x, e.y) < (e.r + 6) ** 2 && (w.hit.get(e) || -9) < G.time - 0.35) { w.hit.set(e, G.time); hurt(e, s.dmg * 0.8, Math.cos(a) * 110, Math.sin(a) * 110, 'tatu'); } }
   if (w.hit.size > 400) w.hit.clear();
 };
 EXH.block = (dmg, src) => {
   const ws = wsFor('tatu'); if (!ws || !(ws[0].plates > 0)) return false;
   const [w, s] = ws; w.plates--; w.rg = 0; player.inv = Math.max(player.inv, 0.35); burst(player.x, player.y, '#a4a4ba', 8); sfx('hit');
   if (src && src.alive) { const d = Math.hypot(src.x - player.x, src.y - player.y) || 1; hurt(src, s.dmg, (src.x - player.x) / d * 220, (src.y - player.y) / d * 220, 'tatu'); }
-  if (s.boom) explode(player.x, player.y, 40 * s.area, s.dmg * 0.8, 'tatu');
+  query(player.x, player.y, 40, Q); for (const e of Q) if (e.alive && !e.d.prop && e !== src && dist2(e.x, e.y, player.x, player.y) < 32 * 32) hurt(e, s.dmg * 0.6, (e.x - player.x) * 5, (e.y - player.y) * 5, 'tatu'); // a placa estilhaça em quem está colado
+  if (s.boom) explode(player.x, player.y, 40 * s.area, s.dmg * 1.2, 'tatu');
   return true;
 };
 
@@ -89,12 +92,14 @@ PROJ2.pilao = (p, dt) => {
   query(p.x, p.y, p.rad + 16, Q); for (const e of Q) { if (!e.alive) continue; const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy) || 1; if (d < p.rad + e.r) { const t = e.parent || e; t.root = Math.max(t.root, p.root); hurt(e, p.dmg, dx / d * 120, dy / d * 120, 'pilao'); } }
   fx.push({ k: 'boom', x: p.x, y: p.y, r: p.rad, life: 0.3, max: 0.3 }); burst(p.x, p.y, '#b8a27a', 16);
   if (p.wave) waves.push({ x: p.x, y: p.y, r: 0, max: p.rad * 2.4, dmg: p.dmg * 0.4, hit: new Set(), src: 'pilao', col: '216,170,110' });
+  if (G.syn.festajunina) pools.push({ x: p.x, y: p.y, r: p.rad * 0.5, life: G.rain > 0 ? 0.8 : 2.5, max: 2.5, dmg: p.dmg * 0.12, tk: 0 });
   G.shake = Math.max(G.shake, 3); sfx('boom'); p.life = 0;
 };
 PROJ2.boi = (p, dt) => {
   p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; query(p.x, p.y, p.r + 16, Q);
   for (const e of Q) if (e.alive && !p.hit.has(e) && dist2(p.x, p.y, e.x, e.y) < (p.r + e.r) ** 2) { p.hit.add(e); const sd = Math.sign((e.x - p.x) * p.vy - (e.y - p.y) * p.vx) || 1; hurt(e, p.dmg, -p.vy * 0.5 * sd, p.vx * 0.5 * sd, 'boi'); }
   if (Math.random() < 0.6) part(p.x + rand(-6, 6), p.y + rand(-6, 6), rand(-20, 20), rand(-30, -5), 0.5, ['#c8463c', '#f2c14e', '#3b6ea5', '#86d46f'][(Math.random() * 4) | 0], 1);
+  if (G.syn.bumbameuboi) { p.wt = (p.wt || 0) - dt; if (p.wt <= 0) { p.wt = 0.3; waves.push({ x: p.x, y: p.y, r: 0, max: 42, dmg: p.dmg * 0.3, hit: new Set(), src: 'boi', col: '216,170,110' }); } }
 };
 PROJ2.chumbo = (p, dt) => {
   p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; query(p.x, p.y, 14, Q);
@@ -165,7 +170,7 @@ EXH.drawFx = () => {
   ctx.globalAlpha = 1;
 };
 EXH.drawGlow = () => {
-  if (!G.dawn) for (const w of flatW()) if (w.id === 'espelho' && w.ang != null) { const s = wstat('espelho', w.lvl, w.ev), L = s.len * s.area; for (let i = 0; i < s.n; i++) { const a = w.ang + i * 6.283 / s.n, x2 = player.x + Math.cos(a) * L, y2 = player.y - 3 + Math.sin(a) * L; ctx.strokeStyle = 'rgba(160,200,255,0.22)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(player.x, player.y - 3); ctx.lineTo(x2, y2); ctx.stroke(); ctx.strokeStyle = 'rgba(230,240,255,0.7)'; ctx.lineWidth = 1; ctx.stroke(); } }
+  if (!G.dawn) for (const w of flatW()) if (w.id === 'espelho' && w.ang != null) { const s = wstat('espelho', w.lvl, w.ev), L = mirLen(s); for (let i = 0; i < s.n; i++) { const a = w.ang + i * 6.283 / s.n, x2 = player.x + Math.cos(a) * L, y2 = player.y - 3 + Math.sin(a) * L; ctx.strokeStyle = 'rgba(160,200,255,0.22)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(player.x, player.y - 3); ctx.lineTo(x2, y2); ctx.stroke(); ctx.strokeStyle = 'rgba(230,240,255,0.7)'; ctx.lineWidth = 1; ctx.stroke(); } }
   for (const f of fx) if (f.k === 'raio') { const a = f.life / f.max; ctx.strokeStyle = `rgba(220,230,255,${a})`; ctx.lineWidth = 2; ctx.beginPath(); let x = f.x + 30, y = f.y - 150; ctx.moveTo(x, y); for (let i = 1; i <= 6; i++) { x = f.x + (30 * (6 - i) / 6) + Math.sin(f.sd + i * 2.7) * 8; y = f.y - 150 + i * 25; ctx.lineTo(x, y); } ctx.stroke(); circle(f.x, f.y, 14 * a, `rgba(200,220,255,${0.5 * a})`); }
   for (const p of projs) if (p.k === 'ebala') circle(p.x, p.y, 6, 'rgba(255,60,40,0.3)');
   for (const m of meteors) { const k = Math.min(1, m.t / 1.2), sx = m.x + 90 * (1 - k), sy = m.y - 160 * (1 - k); ctx.strokeStyle = 'rgba(255,200,120,0.7)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + 18, sy - 32); ctx.stroke(); circle(sx, sy, 4, 'rgba(255,220,150,0.8)'); }
@@ -340,24 +345,32 @@ function catmull(pts, step) {
     for (let j = 0; j < n; j++) { const t = j / n, t2 = t * t, t3 = t2 * t; out.push({ x: 0.5 * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3), y: 0.5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3) }); } }
   out.push(pts[pts.length - 1]); return out;
 }
+// estradas em pixel, como o rio: a curva vira uma grade de células de 4px (borda, terra, sulcos e pedrinhas)
+const RC = 4; let roadCells = new Map(), roadRuns = new Map();
 function buildRoads() {
-  roadSm = roads.map(r => { const pts = catmull(r, 22); for (let i = 0; i < pts.length; i++) { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1; pts[i].nx = -dy / L; pts[i].ny = dx / L; pts[i].w = 1 + 0.18 * Math.sin(i * 0.37) + 0.1 * Math.sin(i * 1.13); } return pts; });
-  roadGrid = new Map(); pebGrid = new Map(); const rr = mulberry(91);
-  const add = (m, key, v) => { let a = m.get(key); if (!a) m.set(key, a = []); a.push(v); };
-  for (const pts of roadSm) {
-    for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], seg = [a.x, a.y, b.x, b.y]; const cs = new Set([((a.x / 64) | 0) * 1000 + ((a.y / 64) | 0), ((b.x / 64) | 0) * 1000 + ((b.y / 64) | 0)]); for (const c of cs) for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) add(roadGrid, c + ox * 1000 + oy, seg); }
-    for (let i = 0; i < pts.length; i++) for (let k = 0; k < 2; k++) { const p = pts[i], o = (rr() * 2 - 1) * 12 * p.w, x = p.x + p.nx * o + rr() * 8, y = p.y + p.ny * o + rr() * 8; add(pebGrid, ((x / 256) | 0) * 1000 + ((y / 256) | 0), { x, y, c: rr() < 0.5 ? '#3d3a58' : '#252438', s: rr() < 0.2 ? 2 : 1 }); }
-    pts.box = []; for (let i = 0; i < pts.length; i += 16) { const ch = pts.slice(i, i + 17); pts.box.push([i, Math.min(...ch.map(p => p.x)) - 24, Math.max(...ch.map(p => p.x)) + 24, Math.min(...ch.map(p => p.y)) - 24, Math.max(...ch.map(p => p.y)) + 24]); }
+  roadSm = roads.map(r => catmull(r, 6)); roadCells = new Map();
+  for (const pts of roadSm) for (let i = 0; i < pts.length; i++) {
+    const p = pts[i], w = 1 + 0.14 * Math.sin(i * 0.031) + 0.07 * Math.sin(i * 0.17), R = 17 * w;
+    const cx0 = Math.floor((p.x - R) / RC), cx1 = Math.floor((p.x + R) / RC), cy0 = Math.floor((p.y - R) / RC), cy1 = Math.floor((p.y + R) / RC);
+    for (let cx = cx0; cx <= cx1; cx++) for (let cy = cy0; cy <= cy1; cy++) { const d = Math.hypot(cx * RC + 2 - p.x, cy * RC + 2 - p.y) / w; if (d < 17) { const k = cx * 8192 + cy, o = roadCells.get(k); if (o === undefined || d < o) roadCells.set(k, d); } }
   }
+  const COL = ['#232540', '#2a2a45', '#33304c', '#2a2842', '#3f3b59'], rows = new Map();
+  for (const [k, d] of roadCells) { const cx = Math.floor(k / 8192), cy = k - cx * 8192, h = Math.sin(cx * 12.9898 + cy * 78.233) * 43758.5453, r = h - Math.floor(h);
+    const t = d >= 15 ? 0 : d >= 12.5 ? 1 : (d > 4.5 && d < 7.5 && r < 0.85) ? 3 : r < 0.05 ? 4 : 2;
+    const ch = ((cx * RC / 256) | 0) * 1000 + ((cy * RC / 256) | 0); let m = rows.get(ch); if (!m) rows.set(ch, m = []); m.push([cy, cx, t]); }
+  roadRuns = new Map();
+  for (const [ch, cells] of rows) { cells.sort((a, b) => a[0] - b[0] || a[1] - b[1]); const out = [];
+    for (const [cy, cx, t] of cells) { const last = out[out.length - 1]; if (last && last[1] === cy * RC && last[0] + last[2] === cx * RC && last[3] === COL[t]) last[2] += RC; else out.push([cx * RC, cy * RC, RC, COL[t]]); }
+    roadRuns.set(ch, out); }
 }
-function onRoad2(x, y) { const a = roadGrid.get(((x / 64) | 0) * 1000 + ((y / 64) | 0)); if (!a) return false; for (const s of a) if (segDist2(x, y, s[0], s[1], s[2], s[3]) < 225) return true; return false; }
+function onRoad2(x, y) { const d = roadCells.get(Math.floor(x / RC) * 8192 + Math.floor(y / RC)); return d !== undefined && d < 14; }
 const NPC_LINES = { rendeira: 'Rendeira: "Oxe, menino, não para não! As visagens tão rondando."', sanfoneiro: 'Sanfoneiro: "Quando tem forró na praça, as visagens dançam também!"', menino: 'Menino: "Vi a Cuca lá pras bandas do açude!"', morador: 'Morador: "A bodega vende baião de dois por umas rapaduras."' };
 function makeExtraWorld() {
   EXW = { forests: [], corn: [], marks: [], npcs: [] };
   const busy = (x, y, m) => Math.hypot(x - MAPW / 2, y - MAPH / 2) < 260 || nearRiver(x, y, m) || inVillage(x, y, m + 40) || inGrave(x, y, m) || inWater(x, y) || acudes.some(a => dist2(a.x, a.y, x, y) < (a.rx + m) ** 2) || spots.some(s => dist2(s.x, s.y, x, y) < (m * 0.6 + 30) ** 2) || EXW.marks.some(k => dist2(k.x, k.y, x, y) < (m + 60) ** 2);
   const spot = (m, tries) => { for (let t = 0; t < (tries || 60); t++) { const x = 150 + Math.random() * (MAPW - 300), y = 150 + Math.random() * (MAPH - 300); if (!busy(x, y, m) && !onRoad2(x, y)) return [x, y]; } return null; };
-  for (const [k, n, m] of [['igreja', 3, 60], ['casarao', 4, 70], ['catavento', 8, 30], ['estatua', 3, 30], ['cruzeiro', 5, 25], ['pedraFurada', 4, 50], ['bodega', 6, 40], ['ruina', 8, 40]]) for (let i = 0; i < n; i++) { const p = spot(m); if (p) EXW.marks.push({ k, x: p[0], y: p[1] }); }
-  for (const k of EXW.marks) if (k.k === 'bodega' || k.k === 'casarao' || k.k === 'igreja') { const nk = ['rendeira', 'sanfoneiro', 'menino', 'morador'][(Math.random() * 4) | 0]; EXW.npcs.push({ k: nk, x: k.x + rand(-30, 30), y: k.y + 26, line: NPC_LINES[nk] }); }
+  for (const [k, n, m] of [['igreja', 3, 60], ['casarao', 4, 70], ['estacao', 2, 130], ['engenho', 4, 45], ['feira', 4, 50], ['curral', 5, 50], ['catavento', 8, 30], ['estatua', 3, 30], ['cruzeiro', 5, 25], ['pedraFurada', 4, 50], ['bodega', 6, 40], ['oratorio', 8, 20], ['ruina', 8, 40]]) for (let i = 0; i < n; i++) { const p = spot(m); if (p) EXW.marks.push({ k, x: p[0], y: p[1] }); }
+  for (const k of EXW.marks) if (k.k === 'bodega' || k.k === 'casarao' || k.k === 'igreja' || k.k === 'feira' || k.k === 'engenho') { const nk = k.k === 'feira' ? 'feirante' : k.k === 'engenho' ? 'senhor' : ['rendeira', 'sanfoneiro', 'menino', 'morador'][(Math.random() * 4) | 0]; EXW.npcs.push({ k: nk === 'feirante' ? 'rendeira' : nk === 'senhor' ? 'morador' : nk, x: k.x + rand(-30, 30), y: k.y + 26, line: NPC_LINES[nk] }); }
   for (let i = 0; i < 16; i++) { const p = spot(220, 80); if (!p) continue; const R = rand(110, 210), trees = [], pal = Math.random() < 0.35 ? 'carnauba' : null;
     for (let j = 0; j < R * R / 170; j++) { const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * R, x = p[0] + Math.cos(a) * r, y = p[1] + Math.sin(a) * r * 0.75; if (onRoad2(x, y) || nearRiver(x, y, 6) || inWater(x, y)) continue; trees.push({ k: pal || (Math.random() < 0.55 ? 'arvore' : Math.random() < 0.5 ? 'juazeiro' : 'mandacaru'), x, y }); }
     EXW.forests.push({ x: p[0], y: p[1], r: R, trees }); }
@@ -374,26 +387,17 @@ function inCorn(x, y) { for (const c of EXW.corn) if (x > c.x && x < c.x + c.w &
 
 /* ---------------- mundo novo: desenho ---------------- */
 EXH.drawRoads = () => {
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   for (const f of EXW.forests) if (onScreen(f.x, f.y, f.r + 20)) { ctx.fillStyle = 'rgba(16,30,34,0.45)'; ctx.beginPath(); ctx.ellipse(f.x, f.y, f.r + 14, (f.r + 14) * 0.75, 0, 0, 6.283); ctx.fill(); }
-  const passes = [[40, 'rgba(26,34,66,0.55)'], [34, '#242845'], [28, '#2d2c4a'], [20, '#353250']];
-  for (const pts of roadSm) for (const [i0, x0, x1, y0, y1] of pts.box) {
-    if (x1 < camX || x0 > camX + VW || y1 < camY || y0 > camY + VH) continue;
-    const i1 = Math.min(pts.length - 1, i0 + 16);
-    for (const [wd, c] of passes) { ctx.strokeStyle = c; ctx.lineWidth = wd; ctx.beginPath(); for (let i = i0; i <= i1; i++) { const p = pts[i]; i === i0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y); } ctx.stroke(); }
-    ctx.strokeStyle = 'rgba(20,22,40,0.55)'; ctx.lineWidth = 2;
-    for (const sd of [-5.5, 5.5]) { ctx.beginPath(); for (let i = i0; i <= i1; i++) { const p = pts[i]; i === i0 ? ctx.moveTo(p.x + p.nx * sd * p.w, p.y + p.ny * sd * p.w) : ctx.lineTo(p.x + p.nx * sd * p.w, p.y + p.ny * sd * p.w); } ctx.stroke(); }
-  }
-  ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
-  const cx0 = Math.max(0, ((camX - 10) / 256) | 0), cx1 = ((camX + VW + 10) / 256) | 0, cy0 = Math.max(0, ((camY - 10) / 256) | 0), cy1 = ((camY + VH + 10) / 256) | 0;
-  for (let gx = cx0; gx <= cx1; gx++) for (let gy = cy0; gy <= cy1; gy++) { const a = pebGrid.get(gx * 1000 + gy); if (a) for (const p of a) if (onScreen(p.x, p.y, 2)) { ctx.fillStyle = p.c; ctx.fillRect(Math.round(p.x), Math.round(p.y), p.s, 1); } }
+  const cx0 = Math.max(0, ((camX - 4) / 256) | 0), cx1 = ((camX + VW + 4) / 256) | 0, cy0 = Math.max(0, ((camY - 4) / 256) | 0), cy1 = ((camY + VH + 4) / 256) | 0;
+  for (let gx = cx0; gx <= cx1; gx++) for (let gy = cy0; gy <= cy1; gy++) { const a = roadRuns.get(gx * 1000 + gy); if (!a) continue;
+    for (const r of a) { if (r[1] + RC < camY || r[1] > camY + VH || r[0] + r[2] < camX || r[0] > camX + VW) continue; ctx.fillStyle = r[3]; ctx.fillRect(r[0], r[1], r[2], RC); } }
 };
 EXH.drawTrees = () => {
   const cx0 = Math.max(0, ((camX - 40) / 256) | 0), cx1 = ((camX + VW + 40) / 256) | 0, cy0 = Math.max(0, ((camY - 40) / 256) | 0), cy1 = ((camY + VH + 40) / 256) | 0;
   for (let gy = cy0; gy <= cy1; gy++) for (let gx = cx0; gx <= cx1; gx++) { const a = treeGrid.get(gx * 1000 + gy); if (a) for (const t of a) if (onScreen(t.x, t.y, 30)) { const s = S[t.k]; longShadow(s, t.x, t.y + s.H / 2, 1); drawSpr(s, t.x, t.y); } }
 };
 EXH.drawGround = () => {
-  for (const k of EXW.marks) { if (!onScreen(k.x, k.y, 70)) continue; const s = S[k.k], sc = k.k === 'igreja' || k.k === 'casarao' || k.k === 'catavento' ? 2 : 1.6;
+  for (const k of EXW.marks) { if (!onScreen(k.x, k.y, 70)) continue; const s = S[k.k], sc = k.k === 'igreja' || k.k === 'casarao' || k.k === 'catavento' || k.k === 'estacao' || k.k === 'curral' || k.k === 'feira' ? 2 : k.k === 'engenho' ? 1.8 : 1.6;
     longShadow(s, k.x, k.y + s.H * sc / 2, sc); shadow(k.x, k.y + s.H * sc / 2 - 1, s.W * sc * 0.8); drawSpr(s, k.x, k.y, { sc });
     if (k.k === 'catavento') { const cx = k.x, cy = k.y - s.H * sc / 2 - 2, a0 = G.time * 2.5; ctx.strokeStyle = '#a4a4ba'; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = a0 + i * 1.047; ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * 11, cy + Math.sin(a) * 11); } ctx.stroke(); ctx.fillStyle = '#f2c14e'; ctx.fillRect(cx - 1, cy - 1, 2, 2); }
     if (k.k === 'bodega' && k.hold > 0) { ctx.strokeStyle = '#86d46f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(k.x, k.y + 10, 16, -1.57, -1.57 + 6.283 * k.hold / 0.8); ctx.stroke(); } }
@@ -426,3 +430,114 @@ ACH.anhanga = { name: 'Guardião das Matas', desc: 'Derrote o Anhangá no fim do
 for (const fu of [{ a: 'trovoada', b: 'espelho', id: 'tempestadeprata', name: 'Tempestade de Prata' }, { a: 'marimbondo', b: 'pipa', id: 'ceumarimbondo', name: 'Céu de Marimbondos' }, { a: 'sal', b: 'foice', id: 'colheitasalgada', name: 'Colheita Salgada' }]) {
   FUSIONS.push(fu); WEAPONS[fu.id] = { name: fu.name, desc: 'Fusão lendária de ' + WEAPONS[fu.a].name + ' e ' + WEAPONS[fu.b].name + '.', fusion: true, evo: null }; S['i_' + fu.id] = S['i_' + fu.a];
 }
+
+/* =========================================================
+   v2.1: fases da noite, descanso, eventos e lugares novos
+   ========================================================= */
+Object.assign(SYN, {
+  linha:       { a: 'pipa', b: 'chapeu', name: 'Linha Encerada', desc: 'A linha da pipa prende por 0,5s quem ela corta.' },
+  bumbameuboi: { a: 'boi', b: 'bumbo', name: 'Bumba Meu Boi', desc: 'O boi deixa ondas de zabumba por onde passa.' },
+  salmoura:    { a: 'sal', b: 'tarrafa', name: 'Salmoura', desc: 'Quem cai na tarrafa fica salgado e toma mais dano.' },
+  festajunina: { a: 'pilao', b: 'fogueira', name: 'Festa Junina', desc: 'O pilão acende uma fogueira onde cai.' },
+  cantoria:    { a: 'pifano', b: 'sanfona', name: 'Cantoria', desc: 'As notas do pífano atravessam mais 2 inimigos.' },
+  tempestade:  { a: 'trovoada', b: 'berimbau', name: 'Tempestade', desc: 'Cada raio da trovoada pula para mais 2 inimigos.' },
+});
+// fases da noite: nome, cor da escuridão e visagens que aparecem mais
+const PHASES = [{ t: 0, name: 'Anoitecer', col: [4, 6, 22] }, { t: 450, name: 'Meia-Noite', col: [2, 3, 30] }, { t: 900, name: 'Madrugada', col: [2, 14, 24] }, { t: 1440, name: 'Antes da Aurora', col: [18, 8, 26] }];
+EXH.phase = () => { const t = G ? G.time : 0; let i = 0; for (let k = 0; k < PHASES.length; k++) if (t >= PHASES[k].t) i = k; return i; };
+EXH.nightCol = a => { const i = EXH.phase(), A = PHASES[i].col, B = PHASES[Math.min(PHASES.length - 1, i + 1)].col, nx = PHASES[i + 1] ? PHASES[i + 1].t : RUN, k = clamp((G.time - (nx - 40)) / 40, 0, 1), c = A.map((v, j) => Math.round(v + (B[j] - v) * k)); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; };
+EXH.phaseW = (type, w) => { const p = EXH.phase(); if (type === 'coruja' || type === 'tatu') return p >= 2 ? w * 1.5 : w; if (type === 'lambisgoia' || type === 'rezadeira') return p >= 3 ? w * 1.6 : w; return w; };
+
+const bulls = [], fogosL = [];
+Object.assign(EVENTS, {
+  tesouro:   { first: 210, every: [170, 230], run: () => spawnTesouro() },
+  vaquejada: { first: 330, every: [200, 260], run: () => spawnVaquejada() },
+  fogos:     { first: 380, every: [230, 300], run: () => { G.fogos = 10; G.fogosT = 0; banner('Fogos da festa! O céu ajuda a limpar o terreiro'); } },
+  cangaco:   { first: 480, every: [190, 250], run: () => spawnCangaco() },
+  enxurrada: { first: 700, every: [260, 320], run: () => spawnEnxurrada() },
+});
+{ const chuva0 = EVENTS.chuva.run; EVENTS.chuva.run = () => { chuva0(); rainMud(); }; }
+function rainMud() { // chuva deixa lama nas estradas por perto
+  const c = []; for (const r of roadSm) for (let i = 0; i < r.length; i += 5) if (dist2(r[i].x, r[i].y, player.x, player.y) < 500 * 500) c.push(r[i]);
+  for (let i = 0; i < 14 && c.length; i++) { const p = c.splice((Math.random() * c.length) | 0, 1)[0], x = p.x + rand(-6, 6), y = p.y + rand(-6, 6); goos.push({ x, y, r: 15, life: 30, c: 2 }); muds.push({ x, y, r: 15, life: 30 }); }
+}
+function spawnVaquejada() {
+  const horiz = Math.random() < 0.5, dir = Math.random() < 0.5 ? 1 : -1;
+  for (let i = 0; i < 3; i++) bulls.push({ horiz, dir, off: (i - 1) * 60 + rand(-10, 10), warn: 1.3 + i * 0.35, cx: player.x, cy: player.y, pos: -(horiz ? VW : VH) / 2 - 40, hit: new Set(), hitP: false });
+  banner('Vaquejada fantasma! Saia das faixas vermelhas'); sfx('warn');
+}
+function spawnCangaco() {
+  const a = Math.random() * 6.283; for (let i = 0; i < 4; i++) { const [x, y] = edgePos(a); const e = spawnEnemy('cangaceiro', x, y); e.cc = rand(1, 2.5); e.orb = Math.random() < 0.5 ? 1 : -1; }
+  banner('Bando de cangaceiros fantasmas!'); sfx('warn');
+}
+function spawnTesouro() {
+  for (let i = 0; i < 20; i++) { const a = Math.random() * 6.283, r = rand(260, 420), x = player.x + Math.cos(a) * r, y = player.y + Math.sin(a) * r; if (x < 40 || y < 40 || x > MAPW - 40 || y > MAPH - 40 || inRiver(x, y) || inWater(x, y)) continue; G.treasure = { x, y, life: 60, hold: 0 }; banner('Um baú enterrado! Siga a seta no radar'); return; }
+}
+function spawnEnxurrada() { const horiz = Math.random() < 0.5, dir = Math.random() < 0.5 ? 1 : -1; G.flood = { horiz, dir, cx: player.x, cy: player.y, pos: -(horiz ? VW : VH) / 2 - 50, tk: 0 }; banner('Enxurrada! A água arrasta tudo'); sfx('splash'); }
+EB2.cangaceiro = (e, dt, dx, dy, d, px, py) => {
+  e.cc -= dt; if (e.cc <= 0 && d < 200) { e.cc = 2.2; const a = Math.atan2(dy, dx), dmg = 6 * (1 + G.time / 600) * (G.nm ? 1.4 : 1); projs.push({ k: 'ebala', x: e.x, y: e.y - 4, vx: Math.cos(a) * 95, vy: Math.sin(a) * 95, life: 3, dmg }); sfx('shoot'); }
+  const want = 115, ox = -dy / d * e.orb, oy = dx / d * e.orb, k = d > want + 15 ? 1 : d < want - 15 ? -1 : 0;
+  return [(dx / d * k + ox * 0.7) * e.spd, (dy / d * k + oy * 0.7) * e.spd];
+};
+{ const ok0 = EXH.onKill; EXH.onKill = e => { ok0(e); if (e.type === 'cangaceiro') drop(e.x, e.y, 'rap', 4); if (e.d.boss) G.saveT = 0.3; }; } // salva a noite logo depois de cada chefão
+
+EXH.world2 = dt => {
+  const ph = EXH.phase(); if (G.phase == null) G.phase = ph; else if (ph !== G.phase) { G.phase = ph; banner(PHASES[ph].name); sfx('warn'); }
+  // descanso aos 15:00
+  if (!G.restDone && G.time >= 900 && !G.inf && !G.dawn) { G.restDone = true; G.restPending = true; }
+  for (const b of bulls) {
+    if (b.warn > 0) { b.warn -= dt; continue; }
+    b.pos += 270 * dt; const bx = b.horiz ? b.cx + b.dir * b.pos : b.cx + b.off, by = b.horiz ? b.cy + b.off : b.cy + b.dir * b.pos; b.x = bx; b.y = by;
+    query(bx, by, 22, Q); const D = 150 * (1 + G.time / 600);
+    for (const e of Q) if (e.alive && !e.d.prop && !b.hit.has(e) && Math.abs(e.x - bx) < 16 + e.r && Math.abs(e.y - by) < 12 + e.r) { b.hit.add(e); hurt(e, D, b.horiz ? b.dir * 120 : 0, b.horiz ? 0 : b.dir * 120); }
+    if (!b.hitP && Math.abs(player.x - bx) < 16 && Math.abs(player.y - by) < 12) { b.hitP = true; playerHit(10 * tdm() / 2); }
+    if (Math.random() < 0.5) part(bx + rand(-8, 8), by + 6, rand(-10, 10), rand(-15, -4), 0.4, '#a8c4ff', 1, true);
+    if (b.pos > (b.horiz ? VW : VH) / 2 + 60) b.done = true;
+  }
+  compact(bulls, b => !b.done);
+  if (G.fogos > 0 && !G.dawn) { G.fogos -= dt; G.fogosT -= dt; if (G.fogosT <= 0) { G.fogosT = 0.22; const c = enemies.filter(e => e.alive && !e.d.prop && onScr2(e.x, e.y, 0)); const t = c.length ? c[(Math.random() * c.length) | 0] : null; const x = t ? t.x : player.x + rand(-150, 150), y = t ? t.y : player.y + rand(-100, 100); fogosL.push({ x, y, t: 0, c: ['#f2c14e', '#e86a9a', '#86d46f', '#7fb2e5'][(Math.random() * 4) | 0] }); } }
+  for (const f of fogosL) { f.t += dt; if (f.t >= 0.5) { f.done = true; query(f.x, f.y, 34, Q); const D = 45 * (1 + G.time / 600); for (const e of Q) if (e.alive && !e.d.prop && dist2(f.x, f.y, e.x, e.y) < (24 + e.r) ** 2) hurt(e, D); fx.push({ k: 'boom', x: f.x, y: f.y, r: 22, life: 0.3, max: 0.3 }); burst(f.x, f.y, f.c, 14, true); sfx('boom'); } }
+  compact(fogosL, f => !f.done);
+  if (G.treasure) { const tr = G.treasure; tr.life -= dt; if (dist2(tr.x, tr.y, player.x, player.y) < 16 * 16) { tr.hold += dt; if (Math.random() < 0.4) part(tr.x + rand(-5, 5), tr.y, rand(-20, 20), rand(-30, -10), 0.4, '#8a5a2b', 1); if (tr.hold >= 1.6) { drop(tr.x, tr.y, 'bau', 1); drop(tr.x + 10, tr.y, 'rap', 10); toast('Desenterrou um baú!'); sfx('win'); burst(tr.x, tr.y, '#f2c14e', 20, true); G.treasure = null; } } else tr.hold = Math.max(0, tr.hold - dt); if (G.treasure && tr.life <= 0) G.treasure = null; }
+  if (G.flood) { const f = G.flood; f.pos += 85 * dt; const at = (x, y) => Math.abs((f.horiz ? (x - f.cx) * f.dir : (y - f.cy) * f.dir) - f.pos) < 36; f.tk -= dt; const tick = f.tk <= 0; if (tick) f.tk = 0.5;
+    for (const e of enemies) { if (!e.alive || e.d.prop || e.d.boss || !at(e.x, e.y)) continue; if (f.horiz) e.x += f.dir * 95 * dt; else e.y += f.dir * 95 * dt; if (tick) hurt(e, 6 * (1 + G.time / 600)); }
+    if (at(player.x, player.y)) { G.slow = 1; if (f.horiz) player.x = clamp(player.x + f.dir * 22 * dt, 8, MAPW - 8); else player.y = clamp(player.y + f.dir * 22 * dt, 8, MAPH - 8); }
+    if (f.pos > (f.horiz ? VW : VH) / 2 + 60) G.flood = null; }
+  // lugares com interação
+  for (const k of EXW.marks) {
+    if (k.k !== 'engenho' && k.k !== 'feira' && k.k !== 'oratorio') continue;
+    k.cd = (k.cd || 0) - dt; const d2 = dist2(k.x, k.y + 12, player.x, player.y);
+    if (k.k === 'oratorio') { if (k.cd <= 0 && d2 < 18 * 18) { k.cd = 70; player.hp = Math.min(player.maxHp, player.hp + 15); player.inv = Math.max(player.inv, 1.5); toast('Oratório: +15 de vida e proteção por 1,5s'); burst(k.x, k.y, '#fff6a0', 14, true); sfx('lvl'); } continue; }
+    if (k.cd > 0 || d2 > 20 * 20) { k.hold = 0; continue; }
+    k.hold = (k.hold || 0) + dt; if (k.hold < 1) continue; k.hold = 0;
+    if (k.k === 'engenho') { k.cd = 150; G.rap += 6; toast('Engenho: +6 rapaduras quentinhas'); sfx('coin'); burst(k.x, k.y, '#c9a84a', 14); }
+    else if (G.rap < 15) { k.cd = 3; toast('A feira pede 15 rapaduras da noite.'); }
+    else { const ws = player.weapons.filter(w => !w.ev && !w.fz && w.lvl < WMAX), ps = Object.keys(player.pass).filter(p => player.pass[p] < PASSIVES[p].max);
+      if (!ws.length && !ps.length) { k.cd = 3; toast('A feira não tem nada para você agora.'); continue; }
+      G.rap -= 15; k.cd = 100; sfx('coin'); burst(k.x, k.y, '#e86a9a', 14, true);
+      if (ws.length && (Math.random() < 0.6 || !ps.length)) { const w = ws[(Math.random() * ws.length) | 0]; w.lvl++; toast('Feira: ' + WEAPONS[w.id].name + ' subiu para o nível ' + w.lvl + '!'); }
+      else { const p = ps[(Math.random() * ps.length) | 0]; player.pass[p]++; recalc(); toast('Feira: ' + PASSIVES[p].name + ' melhorou!'); }
+      refreshSlots(); }
+  }
+};
+{ const w0 = EXH.world; EXH.world = dt => { w0(dt); EXH.world2(dt); }; }
+{ const r0 = EXH.reset; EXH.reset = () => { r0(); bulls.length = 0; fogosL.length = 0; }; }
+{ const g0 = EXH.drawGround; EXH.drawGround = () => {
+  for (const k of EXW.marks) if (k.k === 'estacao' && onScreen(k.x, k.y, 140)) { const y = k.y + 16; ctx.fillStyle = '#3a2414'; for (let x = k.x - 120; x < k.x + 120; x += 8) ctx.fillRect(Math.round(x), y - 1, 3, 8); ctx.fillStyle = '#8a8aa0'; ctx.fillRect(Math.round(k.x - 120), y, 240, 1); ctx.fillRect(Math.round(k.x - 120), y + 5, 240, 1); }
+  g0();
+  for (const k of EXW.marks) { if (!onScreen(k.x, k.y, 40)) continue;
+    if (k.k === 'engenho' && !(k.cd > 0) && Math.random() < 0.15) part(k.x + 13, k.y - 14, rand(-4, 4), rand(-18, -8), 1.2, '#8f97c4', 2);
+    if ((k.k === 'engenho' || k.k === 'feira') && k.hold > 0) { ctx.strokeStyle = k.k === 'engenho' ? '#c9a84a' : '#e86a9a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(k.x, k.y + 12, 16, -1.57, -1.57 + 6.283 * k.hold); ctx.stroke(); } }
+  if (G.treasure) { const tr = G.treasure; drawSpr(S.tesouro, tr.x, tr.y, { sc: 1.5 }); if (tr.hold > 0) { ctx.strokeStyle = '#f2c14e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tr.x, tr.y, 12, -1.57, -1.57 + 6.283 * tr.hold / 1.6); ctx.stroke(); } }
+  for (const b of bulls) { const L = (b.horiz ? VW : VH) + 120; ctx.fillStyle = b.warn > 0 ? `rgba(255,59,46,${0.12 + 0.1 * Math.sin(G.time * 14)})` : 'rgba(160,190,255,0.06)';
+    if (b.horiz) ctx.fillRect(Math.round(b.cx - L / 2), Math.round(b.cy + b.off - 11), L, 22); else ctx.fillRect(Math.round(b.cx + b.off - 13), Math.round(b.cy - L / 2), 26, L); }
+  if (G.flood) { const f = G.flood, L = (f.horiz ? VH : VW) + 120, c = f.horiz ? f.cx + f.dir * f.pos : f.cy + f.dir * f.pos;
+    ctx.fillStyle = 'rgba(40,80,170,0.45)'; if (f.horiz) ctx.fillRect(Math.round(c - 36), Math.round(f.cy - L / 2), 72, L); else ctx.fillRect(Math.round(f.cx - L / 2), Math.round(c - 36), L, 72);
+    ctx.fillStyle = 'rgba(200,225,255,0.7)'; for (let i = 0; i < 40; i++) { const o = ((i * 37.3 + G.time * 60) % L) - L / 2, w = Math.sin(i * 1.7 + G.time * 5) * 4; if (f.horiz) ctx.fillRect(Math.round(c + f.dir * 34 + w), Math.round(f.cy + o), 2, 1); else ctx.fillRect(Math.round(f.cx + o), Math.round(c + f.dir * 34 + w), 1, 2); } }
+}; }
+{ const a0 = EXH.drawAllies; EXH.drawAllies = () => { a0(); for (const b of bulls) if (b.warn <= 0 && b.x != null) { ctx.globalAlpha = 0.65; drawSpr(S.i_boi, b.x, b.y - Math.abs(Math.sin(G.time * 16)) * 2, { sc: 2.6, flip: b.horiz ? b.dir < 0 : false }); ctx.globalAlpha = 1; } }; }
+{ const gl0 = EXH.drawGlow; EXH.drawGlow = () => { gl0(); for (const f of fogosL) { const k = f.t / 0.5, y0 = f.y - 140 * (1 - k); ctx.strokeStyle = f.c; ctx.globalAlpha = 0.8; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(f.x, y0); ctx.lineTo(f.x, y0 - 14); ctx.stroke(); ctx.globalAlpha = 1; circle(f.x, y0, 3, f.c); } for (const b of bulls) if (b.warn <= 0 && b.x != null) circle(b.x, b.y, 12, 'rgba(160,190,255,0.25)'); }; }
+{ const l0 = EXH.lightHoles; EXH.lightHoles = hole => { l0(hole); for (const k of EXW.marks) { if (k.k === 'oratorio') hole(k.x, k.y - 2, 28, k.cd > 0 ? 0.25 : 0.6); else if (k.k === 'engenho') hole(k.x, k.y, 46, 0.4); else if (k.k === 'feira') hole(k.x, k.y, 56, 0.5); } for (const f of fogosL) hole(f.x, f.y - 140 * (1 - f.t / 0.5), 24, 0.6); for (const b of bulls) if (b.warn <= 0 && b.x != null) hole(b.x, b.y, 26, 0.5); if (G.treasure) hole(G.treasure.x, G.treasure.y, 20, 0.35); }; }
+{ const m0 = EXH.miniDots; EXH.miniDots = (dot, inside) => { m0(dot, inside); for (const k of EXW.marks) if (inside(k.x, k.y) && (k.k === 'engenho' || k.k === 'feira' || k.k === 'oratorio') && !(k.cd > 0)) dot(k.x, k.y, k.k === 'engenho' ? '#c9a84a' : k.k === 'feira' ? '#e86a9a' : '#fff6a0', 2); }; }
+Object.assign(NPC_LINES, { feirante: 'Feirante: "Por 15 rapaduras eu melhoro uma coisa sua!"', senhor: 'Seu Zé do engenho: "Fica um pouquinho que sai rapadura quentinha."' });
+LENDAS.cangaceiro = 'Cangaceiros que morreram na caatinga e ainda andam em bando atirando nos viajantes.';

@@ -59,7 +59,8 @@ function update(dt) {
     } else startDawn();
   }
   if (G.dawn) { G.dawn += dt; if (G.dawn > 2.6 && mode === 'play') startCut('outro', () => endRun(true)); }
-  if (G.pendingChest > 0 && mode === 'play' && !G.dawn) openChest();
+  if (G.restPending && mode === 'play' && !G.dawn) openRest();
+  else if (G.pendingChest > 0 && mode === 'play' && !G.dawn) openChest();
   else if (G.pendingLv > 0 && mode === 'play' && !G.dawn) openLevel();
 }
 function startDawn() {
@@ -198,7 +199,7 @@ function updWorld(dt) {
 }
 let last = performance.now();
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dt = clamp((now - last) / 1000, 0, 0.05); last = Math.max(last, now); // o carimbo do quadro pode vir antes do performance.now() de quem retomou o jogo
   if (mode === 'play') { for (let i = 0; i < SPEED && mode === 'play'; i++) update(dt); if (mode === 'play') updHUD(); }
   else if (mode === 'cutscene' && cut) { cut.t += dt; updCutText(); if (cut.t > CUTS[cut.kind].len) endCut(); }
   else menuT += dt;

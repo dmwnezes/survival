@@ -40,9 +40,9 @@ const FOODS = [['tapioca', 20], ['cuscuz', 35], ['baiao', 50]], FOODK = new Set(
 const WMAX = 8, SLOTS = 6;
 const CHARS = {
   vaqueiro:   { name: 'Vaqueiro', weapon: 'chapeu', bonus: '+20 de vida máxima', hp: 20, price: 0, ab: 'laco', abName: 'Laço', abDesc: 'Puxa os inimigos próximos e prende por 1s.', abCd: 10 },
-  pescador:   { name: 'Pescador', weapon: 'peixeira', bonus: '+15% de velocidade e +20 de vida', spd: 1.15, hp: 20, price: 150, unlockTxt: 'Sobreviva 5 minutos', ab: 'mergulho', abName: 'Mergulho', abDesc: 'Some por 1,5s sem tomar dano, os inimigos perdem o rastro e ele volta espirrando água.', abCd: 7 },
-  forrozeira: { name: 'Forrozeira', weapon: 'sanfona', bonus: '+10% de área', area: 1.1, price: 300, unlockTxt: 'Derrote o Lobisomem', ab: 'forro', abName: 'Forró', abDesc: 'Atordoa todos em volta por 1,2s.', abCd: 14 },
-  benzedeira: { name: 'Benzedeira', weapon: 'candeeiro', bonus: 'Cura 1 de vida por segundo, +10 de vida e começa com o Terço', regen: 1, hp: 10, startPass: { terco: 1 }, price: 400, unlockTxt: 'Vença uma noite', ab: 'benzer', abName: 'Benzer', abDesc: 'Cura 35 de vida, protege por 1,5s e afasta quem está perto.', abCd: 12 },
+  pescador:   { name: 'Pescador', weapon: 'peixeira', bonus: '+15% de velocidade e +20 de vida', spd: 1.15, hp: 20, price: 400, unlockTxt: 'Sobreviva 5 minutos', ab: 'mergulho', abName: 'Mergulho', abDesc: 'Some por 1,5s sem tomar dano, os inimigos perdem o rastro e ele volta espirrando água.', abCd: 7 },
+  forrozeira: { name: 'Forrozeira', weapon: 'sanfona', bonus: '+10% de área', area: 1.1, price: 800, unlockTxt: 'Derrote o Lobisomem', ab: 'forro', abName: 'Forró', abDesc: 'Atordoa todos em volta por 1,2s.', abCd: 14 },
+  benzedeira: { name: 'Benzedeira', weapon: 'candeeiro', bonus: 'Cura 1 de vida por segundo, +10 de vida e começa com o Terço', regen: 1, hp: 10, startPass: { terco: 1 }, price: 1200, unlockTxt: 'Vença uma noite', ab: 'benzer', abName: 'Benzer', abDesc: 'Cura 35 de vida, protege por 1,5s e afasta quem está perto.', abCd: 12 },
 };
 const SKINS = {
   vaqueiro:   { name: 'Gibão Dourado', ach: 'amanhecer', pal: { b: '#d9a93a', B: '#9c7420' } },
@@ -62,7 +62,7 @@ const SYN = {
 const ENAMES = { morcego: 'Morcego', vagalume: 'Vagalume', saci: 'Saci', mula: 'Mula sem cabeça', curupira: 'Curupira', urubu: 'Urubu', lobisomem: 'Lobisomem', corposeco: 'Corpo-Seco', cuca: 'Cuca', boitata: 'Boitatá', alma: 'Alma penada', trapalhona: 'Visagem trapalhona', caipora: 'Caipora', iara: "Mãe-d'Água", cabra: 'Cabra-cabriola', muricoca: 'Muriçoca', lambisgoia: 'Lambisgoia', velha: 'Velha de branco', porca: 'Porca dos sete leitões', leitao: 'Leitão', cavaleiro: 'Cavaleiro sem cabeça', mapinguari: 'Mapinguari', paimato: 'Pai do Mato' };
 const TIPS = ['Fogueira com Rojão vira Noite de Fogos.', 'Fique em cima do altar para trocar vida por poder.', 'As cruzes puxam todos os cajus do mapa.', 'A Mula e o Lobisomem piscam antes de investir: saia da frente.', 'Atravesse o rio pelas pontes: na água todo mundo fica lento.', 'Proteja os moradores do vilarejo para ganhar um baú.', 'O Coronel aceita apostas com a rapadura da noite.', 'Jogue rapadura no poço dos desejos para ganhar um presente.', 'Arma no nível 8 com o item certo pode evoluir.', 'Tarrafa no açude prende o dobro.', 'A galinha de ouro foge em zigue-zague: corte o caminho dela.', 'Estrela cadente deixa um baú onde cai.', 'Use a habilidade quando estiver cercado.', 'Cada personagem sobe de nível conforme você joga com ele.', '5.000 abates com uma arma liberam a versão dourada dela.'];
 const PWK = new Set(['cang', 'sanfOuro', 'rapGrande', 'mel']);
-const PETS = { gato: { name: 'Gato Preto', desc: 'Arranha o inimigo mais perto de você.', price: 150 }, prea: { name: 'Preá', desc: 'Busca os cajus longe de você.', price: 250 }, carcara: { name: 'Carcará', desc: 'Mergulha do céu e bica os inimigos.', price: 400 } };
+const PETS = { gato: { name: 'Gato Preto', desc: 'Arranha o inimigo mais perto de você.', price: 400 }, prea: { name: 'Preá', desc: 'Busca os cajus longe de você.', price: 650 }, carcara: { name: 'Carcará', desc: 'Mergulha do céu e bica os inimigos.', price: 1000 } };
 const ROL = [
   { w: 22, t: 'Dobrou a aposta!', good: 1, f: b => { G.rap += b * 2; } },
   { w: 8, t: 'Triplicou a aposta!', good: 1, f: b => { G.rap += b * 3; } },
@@ -81,13 +81,13 @@ const ACH = {
   pesadelo:  { name: 'Pesadelo Vencido', desc: 'Vença a noite no Modo Pesadelo.', reward: '+200 rapaduras', rap: 200 },
 };
 const SHOP = {
-  vida:    { name: 'Vida', desc: '+10 de vida máxima por nível', max: 5, base: 20, ico: 'gibao' },
-  forca:   { name: 'Força', desc: '+5% de dano por nível', max: 5, base: 25, ico: 'pimenta' },
-  pressa:  { name: 'Pressa', desc: '+5% de velocidade por nível', max: 5, base: 20, ico: 'cafe' },
-  ima:     { name: 'Ímã', desc: '+10% de alcance de coleta por nível', max: 5, base: 15, ico: 'bornal' },
-  recarga: { name: 'Recarga', desc: 'Armas 3% mais rápidas por nível', max: 5, base: 30, ico: 'cordel' },
-  escolha: { name: 'Escolha Extra', desc: '4 cartas ao subir de nível', max: 1, base: 120, ico: 'lamparina' },
-  reviver: { name: 'Reviver', desc: 'Volta uma vez por noite com metade da vida', max: 1, base: 200, ico: 'cuscuz' },
+  vida:    { name: 'Vida', desc: '+10 de vida máxima por nível', max: 5, base: 60, ico: 'gibao' },
+  forca:   { name: 'Força', desc: '+5% de dano por nível', max: 5, base: 75, ico: 'pimenta' },
+  pressa:  { name: 'Pressa', desc: '+5% de velocidade por nível', max: 5, base: 60, ico: 'cafe' },
+  ima:     { name: 'Ímã', desc: '+10% de alcance de coleta por nível', max: 5, base: 45, ico: 'bornal' },
+  recarga: { name: 'Recarga', desc: 'Armas 3% mais rápidas por nível', max: 5, base: 90, ico: 'cordel' },
+  escolha: { name: 'Escolha Extra', desc: '4 cartas ao subir de nível', max: 1, base: 400, ico: 'lamparina' },
+  reviver: { name: 'Reviver', desc: 'Volta uma vez por noite com metade da vida', max: 1, base: 600, ico: 'cuscuz' },
 };
 const EN = {
   morcego:    { hp: 6, spd: 36, dmg: 5, xp: 1, r: 4, spr: 'morcego', col: '#8160a8' },

@@ -94,7 +94,7 @@ function drawGround() {
   for (const r of roots) { if (!onScreen(r.x, r.y, 20)) continue; const k = Math.min(1, r.t / 0.9); if (r.t < 0.9) { ctx.strokeStyle = 'rgba(255,59,46,0.75)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(r.x, r.y, 16, 9, 0, 0, 6.283); ctx.stroke(); } drawSpr(S.raiz, r.x, r.y - 3 * k, { sc: 0.5 + k * 1.3 }); }
   for (const h of honeys) { if (!onScreen(h.x, h.y, h.r)) continue; ctx.globalAlpha = 0.4 * Math.min(1, h.life / 0.6); ctx.fillStyle = '#e8a020'; ctx.beginPath(); ctx.ellipse(h.x, h.y, h.r, h.r * 0.6, 0, 0, 6.283); ctx.fill(); }
   ctx.globalAlpha = 1;
-  for (const g of goos) { if (!onScreen(g.x, g.y, 30)) continue; ctx.globalAlpha = 0.55 * Math.min(1, g.life / 0.6); ctx.fillStyle = g.c ? '#24407a' : '#6e2a3a'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = g.c ? '#7fb2e5' : '#ff6a5a'; ctx.fillRect(Math.round(g.x - 4), Math.round(g.y - 2), 2, 1); ctx.fillRect(Math.round(g.x + 5), Math.round(g.y + 2), 1, 1); }
+  for (const g of goos) { if (!onScreen(g.x, g.y, 30)) continue; ctx.globalAlpha = 0.55 * Math.min(1, g.life / 0.6); ctx.fillStyle = g.c === 2 ? '#3e2e22' : g.c ? '#24407a' : '#6e2a3a'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = g.c === 2 ? '#6a5236' : g.c ? '#7fb2e5' : '#ff6a5a'; ctx.fillRect(Math.round(g.x - 4), Math.round(g.y - 2), 2, 1); ctx.fillRect(Math.round(g.x + 5), Math.round(g.y + 2), 1, 1); }
   for (const m of marks) { if (!onScreen(m.x, m.y, 10)) continue; ctx.globalAlpha = Math.min(0.85, m.life / 2); ctx.fillStyle = '#c86a3a'; ctx.fillRect(Math.round(m.x - Math.sin(m.a) * 2 * m.s), Math.round(m.y + Math.cos(m.a) * 2 * m.s), 2, 1); }
   ctx.globalAlpha = 1;
   for (const s of spots) { if (!onScreen(s.x, s.y, 30)) continue;
@@ -130,7 +130,7 @@ function drawMini() { // radar da região em volta do jogador; setas na borda pa
   const mx = x => x0 + (x - ox) * kx, my = y => y0 + (y - oy) * ky, inside = (x, y) => x >= ox && x <= ox + RW && y >= oy && y <= oy + RH;
   ctx.fillStyle = 'rgba(9,12,34,0.8)'; ctx.fillRect(x0 - 1, y0 - 1, W + 2, H + 2);
   ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, W, H); ctx.clip();
-  ctx.strokeStyle = 'rgba(52,50,79,0.9)'; ctx.lineWidth = 1; for (const r of roadSm) { ctx.beginPath(); for (let i = 0; i < r.length; i += 4) i ? ctx.lineTo(mx(r[i].x), my(r[i].y)) : ctx.moveTo(mx(r[i].x), my(r[i].y)); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(52,50,79,0.9)'; ctx.lineWidth = 1; for (const r of roadSm) { ctx.beginPath(); for (let i = 0; i < r.length; i += 12) i ? ctx.lineTo(mx(r[i].x), my(r[i].y)) : ctx.moveTo(mx(r[i].x), my(r[i].y)); ctx.stroke(); }
   ctx.fillStyle = 'rgba(42,74,48,0.55)'; for (const f of EXW.forests) if (Math.abs(f.x - player.x) < RW && Math.abs(f.y - player.y) < RH) { ctx.beginPath(); ctx.ellipse(mx(f.x), my(f.y), Math.max(1, f.r * kx), Math.max(1, f.r * 0.75 * ky), 0, 0, 6.283); ctx.fill(); }
   ctx.fillStyle = '#22356a'; for (const a2 of acudes) if (inside(a2.x, a2.y) || Math.abs(a2.x - player.x) < RW) { ctx.beginPath(); ctx.ellipse(mx(a2.x), my(a2.y), Math.max(1, a2.rx * kx), Math.max(1, a2.ry * ky), 0, 0, 6.283); ctx.fill(); }
   ctx.strokeStyle = '#22356a'; ctx.lineWidth = 2; ctx.beginPath(); for (let y = oy - 100; y <= oy + RH + 100; y += 80) { const X = mx(riverX(y)), Y = my(y); y > oy - 100 ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); } ctx.stroke(); ctx.lineWidth = 1;
@@ -149,6 +149,7 @@ function drawMini() { // radar da região em volta do jogador; setas na borda pa
   for (const c of critters) important.push([c.x, c.y, '#f2c14e']);
   for (const e of enemies) if (e.elite && e.alive) important.push([e.x, e.y, '#c08cff']);
   const dv = defV(); if (dv) important.push([dv.x, dv.y, '#86d46f']);
+  if (G.treasure) important.push([G.treasure.x, G.treasure.y, '#e05545']);
   if (G.boss && G.boss.alive) important.push([G.boss.x, G.boss.y, blink ? '#ff4a3d' : '#a02a20', 1]);
   for (const [x, y, c, big] of important) {
     if (inside(x, y)) { ctx.fillStyle = c; const sz = big ? 4 : 3; ctx.fillRect(Math.round(mx(x) - sz / 2), Math.round(my(y) - sz / 2), sz, sz); continue; }
@@ -293,7 +294,7 @@ function drawLight() { // escuridão com "furos" de luz: jogador, fogueiras, exp
   if (lightC.width !== VW || lightC.height !== VH) { lightC.width = VW; lightC.height = VH; }
   const L = lightX; L.globalCompositeOperation = 'source-over'; L.clearRect(0, 0, VW, VH);
   const a = nightAlpha() * (1 - 0.6 * (G.flash || 0));
-  L.fillStyle = G.blood ? `rgba(36,0,8,${a})` : `rgba(4,6,22,${a})`; L.fillRect(0, 0, VW, VH);
+  L.fillStyle = G.blood ? `rgba(36,0,8,${a})` : EXH.nightCol(a); L.fillRect(0, 0, VW, VH);
   L.globalCompositeOperation = 'destination-out';
   const hole = (x, y, r, k) => { const sx = x - camX, sy = y - camY; if (sx < -r || sy < -r || sx > VW + r || sy > VH + r) return; const g = L.createRadialGradient(sx, sy, 0, sx, sy, r); g.addColorStop(0, `rgba(0,0,0,${k})`); g.addColorStop(1, 'rgba(0,0,0,0)'); L.fillStyle = g; L.fillRect(sx - r, sy - r, r * 2, r * 2); };
   const lp = player.st.lamp || 0;
@@ -342,7 +343,7 @@ function drawTitle() { // tela inicial: vaqueiro na fogueira, lua passando, visa
 function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   if (mode === 'cutscene' && cut) { drawCut(); return; }
-  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach' && mode !== 'stats' && mode !== 'figs' && mode !== 'notes');
+  const inRun = !!(G && player && mode !== 'menu' && mode !== 'chars' && mode !== 'shop' && mode !== 'ach' && mode !== 'stats' && mode !== 'figs' && mode !== 'notes' && mode !== 'mais');
   if (!inRun) { drawTitle(); return; }
   let cx, cy;
   cx = player.x; cy = player.y;

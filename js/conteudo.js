@@ -4,8 +4,17 @@
    Só dados e sprites; a lógica fica em extra.js, ligada ao
    núcleo pelas tabelas de ganchos abaixo.
    ========================================================= */
-const VERSION = 'v2.0';
+const VERSION = 'v2.1';
 const NOTES = [
+  ['v2.1', 'Estradas redesenhadas em pixel, no mesmo estilo do rio.',
+    'Fases da noite: Anoitecer, Meia-Noite, Madrugada e Antes da Aurora, cada uma com cor e visagens próprias.',
+    'Descanso aos 15:00 com resumo da primeira metade e um bônus à escolha.',
+    'Eventos novos: vaquejada fantasma, bando de cangaceiros, baú enterrado, fogos da festa e enxurrada.',
+    'Lugares novos: engenhos de rapadura, feiras, oratórios, currais e estações de trem abandonadas.',
+    'Seis sinergias novas misturando armas novas e antigas; lama nas estradas quando chove.',
+    'Casco de Tatu, Espingarda de Sal e Espelho da Lua ajustados; Lobinho com desenho próprio.',
+    'Menu com botão Mais, cartas mostram o item que evolui a arma, e a noite é salva a cada chefão.',
+    'Loja, personagens e bichinhos mais caros.'],
   ['v2.0', 'Noite de 30 minutos, com a dificuldade subindo até o fim.',
     'Quatro chefões novos depois dos 15 minutos e um chefão secreto no Pesadelo.',
     'Chefões ganham uma segunda fase, com visual e ataque novos.',
@@ -78,6 +87,14 @@ Object.assign(SD, {
   milho: ['..g..', '.g.g.', '..gy.', '.ggy.', 'g.g..', '..g.g', '.gg..', '..gy.', '.g.g.', '..g..', '..g..', '..G..'],
   sanfoneiro: ['...bbbbbb...', '.bbbbbbbbbb.', '..kssssssk..', '..ssksskss..', '..ssssssss..', '...SssssS...', '..rrrrrrrr..', '.srwkwkwkrs.', '.srkwkwkwrs.', '..rwkwkwkr..', '..uuuuuuuu..', '..uu....uu..', '..uu....uu..', '..BB....BB..'],
   rendeira: ['...kkkkkk...', '..kkkkkkkk..', '..kssssssk..', '..ssksskss..', '..ssssssss..', '...SssssS...', '..pppppppp..', '.spppppppps.', '.swwwwwwwws.', '..wywywyww..', '..pppppppp..', '..pppppppp..', '...ss..ss...', '...BB..BB...'],
+  lobinho: ['..h.h.......', '.hhhh.......', 'hehhh....hh.', 'khhhhhhhhhh.', '.hhhhhhhhhh.', '..hHhhhhHh..', '..h.h..h.h..', '..k.k..k.k..'],
+  cangaceiro: ['.y.yyyy.y.', '..yyyyyy..', 'bbbbbbbbbb', '..ssssss..', '..sksks...', '..ssssss..', '...ssss...', '.bbbbbbbbh', 'bbybbbybbh', 'b.bbbbbb.h', 's.bbbbbb..', '..uuuuuu..', '..uu..uu..', '..BB..BB..'],
+  engenho: ['..............hh..', '..............hh..', '..............bb..', '..rrrrrrrrrr..bb..', '.rrrrrrrrrrrr.bb..', 'rrrrrrrrrrrrrrbb..', '.wwwwwwwwwwwwwbb..', '.wwBBwwwwwBBwwbb..', '.wwBBwwwwwBBwwbb..', '.wwwwwbbbwwwwwbb..', '.wwwwwbkbwwwwwbbb.', '.HHHHHbbbHHHHHbbbb', 'tt............tt..'],
+  feira: ['rwrwrw.ywywyw.ugugug.', 'rwrwrw.ywywyw.ugugug.', 'b....b.b....b.b....b.', 'b.oo.b.b.ll.b.b.yy.b.', 'bbbbbb.bbbbbb.bbbbbb.', 'b....b.b....b.b....b.', 'b....b.b....b.b....b.'],
+  oratorio: ['...hh...', '..hhhh..', '.hhhhhh.', '.hkyykh.', '.hkYYkh.', '.hkyykh.', '.hhhhhh.', '..hhhh..', '...hh...', '...hh...', '..hhhh..', '.HHHHHH.'],
+  curral: ['b..b..b..b..b..b..b..b..', 'bbbbbbbbbbbbbbbbbbbbbbbb', 'b......................b', 'b...wwkw.......wkw.....b', 'bb..wwwwwww...wwwwwww..b', 'b...wwwwwww...wwwwwww.bb', 'b...w.w.w.w...w.w.w.w..b', 'bbbbbbbbbbbbbbbbbbbbbbbb', 'b..b..b..b..b..b..b..b..'],
+  estacao: ['...rrrrrrrrrrrrrrrrrrrr...', '..rrrrrrrrrrrrrrrrrrrrrr..', '.rrrrrrrrrrrrrrrrrrrrrrrr.', '..yyyyyyyyyyyyyyyyyyyyyy..', '..ykyykyyBByyykyyykyykyy..', '..yyyyyyyyBkyyyyyyyyyyyy..', '..yyyyyyyyBkyyyyyyyyyyyy..', '..HHHHHHHHHHHHHHHHHHHHHH..', 'hhhhhhhhhhhhhhhhhhhhhhhhhh', 'b.b.b.b.b.b.b.b.b.b.b.b.b.', 'hhhhhhhhhhhhhhhhhhhhhhhhhh'],
+  tesouro: ['k.....k', '.k...k.', '..k.k..', '...k...', '..k.k..', '.k...k.', 'k.....k'],
   menino: ['..kkkk..', '.kkkkkk.', '.ssssss.', '.sksksS.', '.ssssss.', '..rrrr..', '.srrrrs.', '..uuuu..', '..u..u..', '..B..B..'],
 });
 Object.assign(SPAL, {
@@ -103,15 +120,22 @@ Object.assign(SPAL, {
   arvore: { G: '#2a4a30', g: '#3d6b33' },
   milho: { g: '#4a7a3a', y: '#d9b24a', G: '#2f5a33' },
   rendeira: { p: '#3b6ea5' },
+  lobinho: { h: '#7a7a90', H: '#5a5a70', e: '#ffd23f' },
+  cangaceiro: { y: '#f2c14e', b: '#6b4a2e', s: '#c9926a', u: '#4a4a5a', h: '#8a8aa0', B: '#3a2414' },
+  engenho: { r: '#7a3a2a', w: '#b8ab90', b: '#8a4a32', h: '#8a8aa0', H: '#6a6050', t: '#5a5248', k: '#f2c14e' },
+  feira: { r: '#c8463c', w: '#e8e0c8', y: '#f2c14e', u: '#3b6ea5', g: '#5f9e4a', b: '#6b4a2e', o: '#e8832a', l: '#9fe07a' },
+  oratorio: { h: '#b8b0a0', H: '#7a7060', k: '#3a3040', y: '#f2c14e', Y: '#fff6a0' },
+  curral: { b: '#6b4a2e', w: '#d8d4c4', k: '#3a3040' },
+  estacao: { r: '#5a3a2a', y: '#a88a5a', B: '#3a2414', k: '#2a2433', H: '#6a5a4a', h: '#8a8aa0', b: '#5c3a1c' },
+  tesouro: { k: '#c8463c' },
   i_olhogordo: { p: '#8160a8' }, i_garrafa: { w: '#c9d4f0' }, i_espelho: { U: '#a8d4ff', w: '#ffffff' },
 });
-const OUT2 = ['fulozinha', 'cabecadecuia', 'labatut', 'bestafera', 'anhanga', 'coruja', 'coruja2', 'tatu', 'rezadeira', 'beata', 'cuia', 'bode', 'jumento', 'sanfoneiro', 'rendeira', 'menino'];
+const OUT2 = ['lobinho', 'cangaceiro', 'fulozinha', 'cabecadecuia', 'labatut', 'bestafera', 'anhanga', 'coruja', 'coruja2', 'tatu', 'rezadeira', 'beata', 'cuia', 'bode', 'jumento', 'sanfoneiro', 'rendeira', 'menino'];
 const X2b = new Set(['fulozinha', 'cabecadecuia', 'labatut', 'bestafera', 'anhanga']);
-const WALK2 = new Set(['fulozinha', 'labatut', 'bestafera', 'anhanga', 'tatu', 'rezadeira', 'beata', 'bode', 'jumento', 'menino']);
+const WALK2 = new Set(['lobinho', 'cangaceiro', 'fulozinha', 'labatut', 'bestafera', 'anhanga', 'tatu', 'rezadeira', 'beata', 'bode', 'jumento', 'menino']);
 for (const k of ['i_pilao', 'i_boi', 'i_sal', 'i_arapuca', 'i_marimbondo', 'i_foice', 'i_trovoada', 'i_piao', 'i_pipa', 'i_tatu', 'i_bola', 'i_espelho', 'i_pifano', 'i_patua', 'i_rape', 'i_olhogordo', 'i_rede', 'i_garrafa', 'i_rosario', 'i_espora', 'i_cacua', 'i_chocalho', 'i_salgrosso', 'i_jandaira', 'i_lenco', 'i_moeda',
-  'fulozinha', 'cabecadecuia', 'labatut', 'bestafera', 'anhanga', 'coruja', 'coruja2', 'tatu', 'monte', 'rezadeira', 'beata', 'cuia', 'bode', 'jumento', 'igreja', 'casarao', 'catavento', 'estatua', 'cruzeiro', 'pedraFurada', 'bodega', 'ruina', 'carnauba', 'arvore', 'milho', 'sanfoneiro', 'rendeira', 'menino'])
+  'fulozinha', 'cabecadecuia', 'labatut', 'bestafera', 'anhanga', 'coruja', 'coruja2', 'tatu', 'monte', 'rezadeira', 'beata', 'cuia', 'bode', 'jumento', 'igreja', 'casarao', 'catavento', 'estatua', 'cruzeiro', 'pedraFurada', 'bodega', 'ruina', 'carnauba', 'arvore', 'milho', 'sanfoneiro', 'rendeira', 'menino', 'lobinho', 'cangaceiro', 'engenho', 'feira', 'oratorio', 'curral', 'estacao', 'tesouro'])
   S[k] = sprite(SD[k], SPAL[k], { out: OUT2.includes(k), x2: X2b.has(k), walk: WALK2.has(k) });
-S.lobinho = sprite(SD.lobisomem, Object.assign({}, SPAL.lobisomem, { h: '#6a6a80', H: '#4a4a60' }), { out: true, walk: true });
 // segunda fase dos chefões: mesma forma, cores em brasa
 const P2PAL = { lobisomem: { h: '#5a2a2a', H: '#3a1a1a', e: '#fff6a0' }, paimato: { g: '#7a2a20', G: '#a83a32', e: '#fff6a0' }, mapinguari: { n: '#4a1e14', N: '#2a120c', e: '#fff6a0' },
   corposeco: { n: '#6a5a4a', y: '#8a2a20', e: '#fff6a0' }, cuca: { p: '#6e2420', P: '#a83a32', g: '#2f5a33', e: '#fff6a0' }, fulozinha: { g: '#6e2420', G: '#4a1a18', Y: '#fff6a0' },
@@ -155,7 +179,8 @@ Object.assign(EN, {
   tatu:       { hp: 60, spd: 40, dmg: 8, xp: 3, r: 5, spr: 'tatu', col: '#8a7a6a' },
   rezadeira:  { hp: 90, spd: 24, dmg: 6, xp: 5, r: 5, spr: 'rezadeira', col: '#9fe07a' },
   beata:      { hp: 40, spd: 30, dmg: 6, xp: 2, r: 4, spr: 'beata', col: '#f2c14e' },
-  lobinho:    { hp: 45, spd: 50, dmg: 7, xp: 3, r: 5, spr: 'lobinho', scale: 0.55, col: '#6a6a80' },
+  lobinho:    { hp: 45, spd: 50, dmg: 7, xp: 3, r: 5, spr: 'lobinho', scale: 1.1, col: '#7a7a90' },
+  cangaceiro: { hp: 260, spd: 34, dmg: 8, xp: 6, r: 5, spr: 'cangaceiro', col: '#6b4a2e' },
   cuia:       { hp: 120, spd: 78, dmg: 8, xp: 3, r: 5, spr: 'cuia', col: '#b08060' },
   bode:       { hp: 14, spd: 0, dmg: 0, xp: 0, r: 5, spr: 'bode', prop: 1, neutral: 1, col: '#d8d4c4' },
   jumento:    { hp: 22, spd: 0, dmg: 0, xp: 0, r: 6, spr: 'jumento', prop: 1, neutral: 1, col: '#8a8a9a' },
@@ -172,7 +197,7 @@ BOSSES.push(
   { t: 1680, type: 'bestafera', name: 'A Besta-Fera' },
 );
 const SECRET_BOSS = { t: RUN, type: 'anhanga', name: 'O Anhangá' };
-Object.assign(ENAMES, { coruja: 'Rasga-Mortalha', tatu: 'Tatu Assombrado', rezadeira: 'Rezadeira das Trevas', beata: 'Procissão de Velas', lobinho: 'Lobinho', cuia: 'Cuia', fulozinha: 'Comadre Fulozinha', cabecadecuia: 'Cabeça de Cuia', labatut: 'Labatut', bestafera: 'Besta-Fera', anhanga: 'Anhangá', bode: 'Bode', jumento: 'Jumento' });
+Object.assign(ENAMES, { cangaceiro: 'Cangaceiro fantasma', coruja: 'Rasga-Mortalha', tatu: 'Tatu Assombrado', rezadeira: 'Rezadeira das Trevas', beata: 'Procissão de Velas', lobinho: 'Lobinho', cuia: 'Cuia', fulozinha: 'Comadre Fulozinha', cabecadecuia: 'Cabeça de Cuia', labatut: 'Labatut', bestafera: 'Besta-Fera', anhanga: 'Anhangá', bode: 'Bode', jumento: 'Jumento' });
 // passiva própria de cada personagem
 const CPAS = {
   vaqueiro: 'Gibão de vaqueiro: toma 10% menos dano de contato.',

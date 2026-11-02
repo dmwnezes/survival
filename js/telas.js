@@ -13,7 +13,7 @@ function updHUD() {
   const cdMax = CHARS[player.char].abCd * (1 - 0.15 * (player.pass.cuia || 0)), cdk = Math.max(0, G.abCd) / cdMax; $('#abil-cd').style.height = (cdk * 100).toFixed(0) + '%'; $('#abil').classList.toggle('cool', cdk > 0);
   const b = G.boss && G.boss.alive ? G.boss : null; $('#bossbar').style.display = b ? 'block' : 'none';
   if (b) { setText('#bossname', b.bossName); $('#bossfill').style.width = Math.max(0, b.hp / b.maxHp * 100) + '%'; }
-  const nb = b || G.dawn ? null : BOSSES.find(x => !G.bossDone[x.type] && x.t > G.time); setText('#nextboss', nb && nb.t - G.time < 90 && !G.inf ? 'Chefão em ' + fmt(nb.t - G.time) : '');
+  const nb = b || G.dawn ? null : BOSSES.find(x => !G.bossDone[x.type] && x.t > G.time); const alert = nb && nb.t - G.time < 90 && !G.inf; setText('#nextboss', alert ? 'Chefão em ' + fmt(nb.t - G.time) : G.dawn ? '' : PHASES[EXH.phase()].name); $('#nextboss').classList.toggle('ph', !alert);
 }
 function hud(on) { $('#hud').classList.toggle('hidden', !on); hudCache = {}; }
 function refreshSlots() {
@@ -45,6 +45,7 @@ function goto(name) {
   else if (name === 'ach') { mode = 'ach'; renderAch(); }
   else if (name === 'stats') { mode = 'stats'; renderStats(); }
   else if (name === 'figs') { mode = 'figs'; renderFigs(); }
+  else if (name === 'mais') { mode = 'mais'; renderMenu(); }
   else if (name === 'notes') { mode = 'notes'; $('#notelist').innerHTML = NOTES.map(([v, ...ls]) => `<div class="panel item"><div class="tx"><b>${v}</b>${ls.map(l => `<span>• ${l}</span>`).join('')}</div></div>`).join(''); }
   refreshRap(); show(name);
 }
@@ -182,7 +183,7 @@ function cardHTML(o) {
   if (o.k === 'fuse') return `<img class="ci" src="${icon(o.f.a)}" alt=""><span class="ct">Fusão lendária</span><b>${o.f.name}</b><span class="cd">Junta ${WEAPONS[o.f.a].name} e ${WEAPONS[o.f.b].name} num espaço só, 35% mais fortes. Libera um espaço de arma.</span>`;
   if (o.k === 'wnew' || o.k === 'wup' || o.k === 'evo') {
     const W = WEAPONS[o.id], w = player.weapons.find(x => x.id === o.id); ico = icon(o.id);
-    if (o.k === 'wnew') { name = W.name; tag = 'Nova arma'; desc = W.desc; const sy = Object.values(SYN).find(x => (x.a === o.id && (!x.b || hasW(x.b))) || (x.b === o.id && hasW(x.a))); if (sy) desc += ' Sinergia: ' + sy.name + '.'; }
+    if (o.k === 'wnew') { name = W.name; tag = 'Nova arma'; desc = W.desc + (W.evo ? ` Evolui com ${PASSIVES[W.evo].name}.` : ''); const sy = Object.values(SYN).find(x => (x.a === o.id && (!x.b || hasW(x.b))) || (x.b === o.id && hasW(x.a))); if (sy) desc += ' Sinergia: ' + sy.name + '.'; }
     else if (o.k === 'wup') { name = W.name; tag = `Nível ${w.lvl + 1}`; desc = wupDesc(o.id, w.lvl); }
     else { name = W.evoName; tag = o.path === 'a' ? 'Evolução: Área' : 'Evolução: Força'; desc = W.evoDesc + (o.path === 'a' ? ' Caminho da área: mais alcance e quantidade.' : ' Caminho da força: muito mais dano.'); }
   } else if (o.k === 'pnew' || o.k === 'pup') {
@@ -203,6 +204,21 @@ function openLevel(again) {
   });
   show('level');
 }
+// descanso aos 15:00: resumo da primeira metade e um bônus à escolha
+const REST = [
+  { name: 'Rede na varanda', desc: 'Vida cheia e +20 de vida máxima até o amanhecer.', ico: 'rede', f: () => { G.restHp = true; recalc(); player.hp = player.maxHp; } },
+  { name: 'Café passado na hora', desc: '+15% de dano até o amanhecer.', ico: 'cafe', f: () => { G.restDmg = true; recalc(); } },
+  { name: 'Baú do Coronel', desc: 'Abre um baú agora mesmo.', ico: 'bau', f: () => { G.pendingChest++; } },
+];
+function openRest() {
+  mode = 'rest'; joy = null; sfx('win');
+  const top = Object.entries(G.dmg).filter(([k]) => WEAPONS[k]).sort((a, b) => b[1] - a[1])[0];
+  $('#rest-sub').textContent = `Primeira metade: ${G.kills} abates, nível ${player.level}${top ? ', arma mais forte: ' + WEAPONS[top[0]].name : ''}. Escolha um bônus para a madrugada.`;
+  const box = $('#rest-opts'); box.innerHTML = '';
+  REST.forEach((o, i) => { const b = document.createElement('button'); b.className = 'card k-item'; b.innerHTML = `<img class="ci" src="${icon(o.ico)}" alt=""><span class="ct">Descanso</span><b>${o.name}</b><span class="cd">${o.desc}</span>`; b.onclick = () => chooseRest(i); box.appendChild(b); });
+  show('rest');
+}
+function chooseRest(i) { if (mode !== 'rest') return; G.restPending = false; sfx('ui'); REST[i].f(); hideScreens(); mode = 'play'; last = performance.now(); banner('A madrugada começou'); }
 function reroll() { const cost = 3 + 2 * (G.rerolls || 0); if (mode !== 'level' || G.rap < cost) return; G.rap -= cost; G.rerolls = (G.rerolls || 0) + 1; sfx('coin'); openLevel(true); }
 function choose(o) {
   if (mode !== 'level') return; sfx('ui'); const p = player;
@@ -289,7 +305,7 @@ function openChest() {
 /* ---------------- salvar a noite ---------------- */
 const RUN_KEY = 'visagem-run-v1';
 function saveRun() {
-  if (!G || !player || G.dawn || !['play', 'pause', 'level', 'chest'].includes(mode)) return;
+  if (!G || !player || G.dawn || !['play', 'pause', 'level', 'chest', 'rest'].includes(mode)) return;
   const data = { v: 1, G: Object.assign({}, G, { boss: null }), boss: G.boss && G.boss.alive ? { type: G.boss.type, f: G.boss.hp / G.boss.maxHp } : null,
     ex: EXW, p: { char: player.char, spr: player.spr, x: player.x, y: player.y, hp: player.hp, xp: player.xp, level: player.level, next: player.next, weapons: player.weapons.map(w => w.fz ? { id: w.id, lvl: w.lvl, ev: w.ev, fz: true, parts: w.parts.map(p => ({ id: p.id, lvl: p.lvl, ev: p.ev })) } : { id: w.id, lvl: w.lvl, ev: w.ev }), pass: player.pass },
     spots, acudes, traps, villages, roads, graves, riv: RIV, items: items.filter(i => i.kind !== 'xp').map(i => ({ x: i.x, y: i.y, kind: i.kind, v: i.v, food: !!i.food })) };
@@ -344,7 +360,7 @@ function pauseGame() {
 function resumeGame() { if (mode !== 'pause') return; hideScreens(); mode = 'play'; last = performance.now(); audioInit(); }
 function endRun(win) {
   if (mode === 'over' || !G) return; mode = 'over'; joy = null;
-  const t = G.inf ? G.time : Math.min(G.time, RUN), earned = (Math.floor(G.kills / 40) + Math.floor(t / 60) * 2 + G.rap) * (G.nm ? 2 : 1);
+  const t = G.inf ? G.time : Math.min(G.time, RUN), earned = (Math.floor(G.kills / 60) + Math.floor(t / 60) * 2 + G.rap) * (G.nm ? 2 : 1);
   save.rap += earned; const b = save.best;
   b.time = Math.max(b.time, Math.min(t, RUN)); if (G.inf) b.inf = Math.max(b.inf || 0, t); save.cxp[player.char] = (save.cxp[player.char] || 0) + Math.round(t / 6 + G.kills / 50); b.kills = Math.max(b.kills, G.kills); b.level = Math.max(b.level, player.level);
   const st = save.stats; st.runs++; if (win) st.wins++; st.time += t; st.kills += G.kills;

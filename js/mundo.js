@@ -70,7 +70,7 @@ function newPlayer(ch) {
 function recalc() {
   const p = player, pv = p.pass, up = save.up, ch = CHARS[p.char];
   p.st = {
-    dmg: (1 + 0.05 * (save.prest || 0)) * (1 + 0.1 * (pv.pimenta || 0)) * (1 + 0.05 * (up.forca || 0)) * (1 + 0.25 * (pv.cachaca || 0)) * (1 + 0.02 * clvl(p.char)),
+    dmg: (G && G.restDmg ? 1.15 : 1) * (1 + 0.05 * (save.prest || 0)) * (1 + 0.1 * (pv.pimenta || 0)) * (1 + 0.05 * (up.forca || 0)) * (1 + 0.25 * (pv.cachaca || 0)) * (1 + 0.02 * clvl(p.char)),
     luck: 1 + 0.25 * (pv.ferradura || 0),
     drunk: pv.cachaca || 0,
     slip: pv.chinelo || 0,
@@ -81,7 +81,7 @@ function recalc() {
     amount: pv.zabumba || 0,
     magnet: 42 * (1 + 0.3 * (pv.bornal || 0)) * (1 + 0.1 * (up.ima || 0)),
   };
-  const mx = 100 + (G && G.farinha > 0 ? 30 : 0) + (ch.hp || 0) + 20 * (pv.gibao || 0) + 10 * (up.vida || 0) + 5 * Math.floor(clvl(p.char) / 2);
+  const mx = 100 + (G && G.restHp ? 20 : 0) + (G && G.farinha > 0 ? 30 : 0) + (ch.hp || 0) + 20 * (pv.gibao || 0) + 10 * (up.vida || 0) + 5 * Math.floor(clvl(p.char) / 2);
   if (p.maxHp) p.hp += Math.max(0, mx - p.maxHp);
   p.maxHp = mx; p.hp = Math.min(p.hp, mx);
 }
@@ -244,7 +244,8 @@ function spawnCart() {
   banner('Lá vem o carro de boi!');
 }
 function pickType(m) {
-  const w = [['morcego', Math.max(2, 10 - m)], ['vagalume', m > 0.5 ? 4 : 0], ['saci', m >= 2 ? 1.6 + m * 0.25 : 0], ['mula', m >= 4 ? 0.5 + (m - 4) * 0.4 : 0], ['curupira', m >= 3 ? 1 + m * 0.12 : 0], ['trapalhona', m >= 1.5 ? 1.2 : 0], ['cabra', m >= 3 ? 0.4 + (m - 3) * 0.1 : 0], ['lambisgoia', m >= 5 ? 0.35 + (m - 5) * 0.04 : 0], ['coruja', m >= 6 ? 0.6 + (m - 6) * 0.05 : 0], ['tatu', m >= 8 ? 0.5 + (m - 8) * 0.05 : 0], ['rezadeira', m >= 10 && enemies.filter(e => e.type === 'rezadeira').length < 3 ? 0.3 : 0]];
+  const w = [['morcego', Math.max(2, 10 - m)], ['vagalume', m > 0.5 ? 4 : 0], ['saci', m >= 2 ? 1.6 + m * 0.25 : 0], ['mula', m >= 4 ? 0.5 + (m - 4) * 0.4 : 0], ['curupira', m >= 3 ? 1 + m * 0.12 : 0], ['trapalhona', m >= 1.5 ? 1.2 : 0], ['cabra', m >= 3 ? 0.4 + (m - 3) * 0.1 : 0], ['lambisgoia', m >= 5 ? 0.35 + (m - 5) * 0.04 : 0], ['coruja', m >= 6 ? 0.6 + (m - 6) * 0.05 : 0], ['tatu', m >= 8 && enemies.filter(e => e.type === 'tatu').length < 12 ? 0.5 + (m - 8) * 0.05 : 0], ['rezadeira', m >= 10 && enemies.filter(e => e.type === 'rezadeira').length < 3 ? 0.3 : 0], ['alma', [0, 0.6, 0.35, 0.35][EXH.phase()]]];
+  for (const x of w) x[1] = EXH.phaseW(x[0], x[1]);
   let tot = 0; for (const x of w) tot += x[1]; let r = Math.random() * tot;
   for (const x of w) { r -= x[1]; if (r <= 0) return x[0]; } return 'morcego';
 }
