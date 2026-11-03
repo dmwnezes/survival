@@ -72,16 +72,16 @@ h2{font-weight:400;font-size:clamp(26px,7.5vh,46px);color:var(--moon);text-shado
 /* plano */
 #plan{position:fixed;inset:0;pointer-events:none;z-index:9}
 #plan>*{pointer-events:auto}
-#hand{position:fixed;left:50%;bottom:0;transform:translateX(-50%);display:flex;gap:2vh;align-items:flex-end}
-.card{width:clamp(88px,26vh,172px);height:clamp(118px,36vh,236px);background:#122a32;border:3px solid #3f9fb0;box-shadow:0 0 0 3px var(--k),inset 0 0 0 2px #1f4a55;padding:.7vh .9vh;display:flex;flex-direction:column;gap:.6vh;align-items:stretch;transform:translateY(24%);transition:transform .12s;position:relative;text-align:center}
-.card .ch{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:0 4px;background:#1f4a55;box-shadow:0 0 0 2px var(--k)}
-.card .cn{font-size:clamp(12px,3.4vh,21px);color:#f4efe0;text-shadow:2px 2px 0 var(--k);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .ct{font-size:clamp(9px,2.3vh,13px);color:#3f9fb0}
-.card .ca{width:100%;aspect-ratio:4/3;display:block;box-shadow:0 0 0 2px var(--k)}
-.card .cd{flex:1;font-size:clamp(10px,2.8vh,16px);line-height:1;color:#14111f;background:#8fd0d8;box-shadow:0 0 0 2px var(--k);padding:2px 4px}
+#hand{position:fixed;left:50%;bottom:1.4vh;transform:translateX(-50%);display:flex;gap:2vh;align-items:flex-end}
+.card{width:clamp(104px,31vh,200px);background:#122a32;border:3px solid #3f9fb0;box-shadow:0 0 0 3px var(--k),inset 0 0 0 2px #1f4a55;padding:.7vh .9vh;display:flex;flex-direction:column;gap:.6vh;align-items:stretch;transition:transform .12s;position:relative;text-align:center}
+.card .ch{display:flex;align-items:center;justify-content:center;gap:4px;padding:0 4px;background:#1f4a55;box-shadow:0 0 0 2px var(--k)}
+.card .cn{font-size:clamp(11px,3.2vh,20px);color:#f4efe0;text-shadow:2px 2px 0 var(--k);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .ct{position:absolute;right:1.2vh;top:calc(.7vh + clamp(16px,4.4vh,26px));font-size:clamp(9px,2.3vh,13px);color:#3f9fb0;background:rgba(7,6,15,.75);padding:0 4px}
+.card .ca{width:100%;aspect-ratio:2/1;object-fit:cover;object-position:50% 85%;display:block;box-shadow:0 0 0 2px var(--k)}
+.card .cd{min-height:2.1em;font-size:clamp(11px,3vh,17px);line-height:1.05;color:#14111f;background:#8fd0d8;box-shadow:0 0 0 2px var(--k);padding:2px 4px}
 .card .tr{position:absolute;left:1.2vh;top:calc(.7vh + clamp(16px,4.4vh,26px));font-size:clamp(9px,2.4vh,13px);background:rgba(7,6,15,.75);color:#e8d9b8;padding:0 4px}
 .card .lv{position:absolute;top:-1.6vh;right:-1vh;font-size:clamp(11px,2.8vh,16px);background:var(--acc);color:#14111f;padding:0 5px;box-shadow:0 0 0 2px var(--k)}
-.card.sel{transform:translateY(-2%);box-shadow:0 0 0 3px var(--k),0 0 24px rgba(242,193,78,.7)}
+.card.sel{transform:translateY(-10%);box-shadow:0 0 0 3px var(--k),0 0 24px rgba(242,193,78,.7)}
 .card.used{filter:grayscale(1) brightness(.5)}
 .card.t-bencao{background:#14203a;border-color:#7fb2e5}.card.t-bencao .ch{background:#22406a}.card.t-bencao .ct{color:#7fb2e5}.card.t-bencao .cd{background:#a8c8f0}
 .card.t-decreto{background:#10301e;border-color:#3fbf6a}.card.t-decreto .ch{background:#1c5a34}.card.t-decreto .ct{color:#3fbf6a}.card.t-decreto .cd{background:#7fe0a0}
@@ -284,6 +284,6 @@ table.recs th{color:var(--acc)}
 <script src="js/dados.js?v=1"></script>
 <script src="js/arte.js?v=1"></script>
 <script src="js/jogo.js?v=1"></script>
-<script src="js/telas.js?v=1"></script>
+<script src="js/telas.js?v=2"></script>
 </body>
 </html>
