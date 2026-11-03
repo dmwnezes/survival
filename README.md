@@ -64,3 +64,14 @@ O jogo está em `index.html` e na pasta `js/` (scripts carregados em ordem: base
 
 ## Testes
 Adicione `?speed=4` ao endereço para acelerar o tempo (até 10x) e chegar mais rápido aos chefões.
+
+## DLC: Reinado do Sertão (v3.3)
+
+Jogo novo no estilo 9 Kings, aberto pelo botão **Reinado do Sertão · DLC** no menu (pasta `senhores/`).
+
+- 33 anos de partida: a cada ano você joga 1 carta (Lote, Bênção ou Decreto) numa fazenda 5×5 com a Casa-grande no centro.
+- Lotes iguais sobem de nível (até 5); terreno de água, pedra e mata dá bônus.
+- Batalhas automáticas: anos pares um rival ataca; anos ímpares você escolhe quem atacar e rouba uma carta dele ao vencer.
+- Nove senhores do folclore, cada um com passivo, poder e cartas próprias; derrote um para jogar com ele. Anhangá é secreto.
+- Chefões nos anos 11, 22 e 33, estações de chuva e seca, eventos, modo Pesadelo, modo sem fim e a Árvore do Engenho (melhorias permanentes).
+- Arquivos: `senhores/js/dados.js` (conteúdo), `arte.js` (pixel art), `jogo.js` (regras e batalha), `telas.js` (interface, música e sons).
